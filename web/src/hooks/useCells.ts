@@ -4,47 +4,51 @@ import { useEffect, useState } from "react";
 import { DataError, loadCountryCells } from "@/lib/data";
 import type { CellRow } from "@/lib/types";
 
-export type CountryData =
+export type CellData =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ready"; rows: CellRow[] }
   | { status: "error"; message: string };
 
-type Settled = Extract<CountryData, { status: "ready" | "error" }>;
+type Settled = Extract<CellData, { status: "ready" | "error" }>;
 
 /**
- * Loads the rows of one country file and reports loading and error states.
- * Pass null while no country is chosen.
+ * Loads the rows of one or more country files and joins them, with loading
+ * and error states. One file for a country, several for a region that
+ * crosses a border. Pass an empty list while nothing is chosen.
  */
-export function useCountryData(file: string | null): CountryData {
-  // The result is stored together with the file it belongs to. While the two
-  // differ, a new file is on its way and the old result must not be shown.
-  const [result, setResult] = useState<{ file: string; data: Settled } | null>(null);
+export function useCells(files: readonly string[]): CellData {
+  // One string as the effect's key, so a new array with the same files
+  // does not start a new download.
+  const key = files.join("|");
+
+  // The result is stored together with the files it belongs to. While the
+  // two differ, new files are on their way and the old result must not show.
+  const [result, setResult] = useState<{ key: string; data: Settled } | null>(null);
 
   useEffect(() => {
-    if (!file) return;
+    if (!key) return;
+    const list = key.split("|");
     const controller = new AbortController();
 
-    loadCountryCells(file, controller.signal).then(
-      (rows) => {
+    Promise.all(list.map((file) => loadCountryCells(file, controller.signal))).then(
+      (parts) => {
         if (controller.signal.aborted) return;
-        setResult({ file, data: { status: "ready", rows } });
+        setResult({ key, data: { status: "ready", rows: parts.length === 1 ? parts[0] : parts.flat() } });
       },
       (error: unknown) => {
         if (controller.signal.aborted) return;
         const message =
-          error instanceof DataError
-            ? error.message
-            : `Something went wrong while loading "${file}".`;
-        setResult({ file, data: { status: "error", message } });
+          error instanceof DataError ? error.message : `Something went wrong while loading ${list.join(", ")}.`;
+        setResult({ key, data: { status: "error", message } });
       },
     );
 
-    // Choosing another country cancels the download that is still running.
+    // A new choice cancels the downloads that are still running.
     return () => controller.abort();
-  }, [file]);
+  }, [key]);
 
-  if (!file) return { status: "idle" };
-  if (!result || result.file !== file) return { status: "loading" };
+  if (!key) return { status: "idle" };
+  if (!result || result.key !== key) return { status: "loading" };
   return result.data;
 }

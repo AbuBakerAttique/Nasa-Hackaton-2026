@@ -6,97 +6,193 @@
       "id": "Austria",
       "name": "Austria",
       "file": "Austria.json",
-      "rows": 2089
+      "rows": 2089,
+      "bounds": [
+        9.495,
+        46.255,
+        17.245,
+        49.005
+      ]
     },
     {
       "id": "Bulgaria",
       "name": "Bulgaria",
       "file": "Bulgaria.json",
-      "rows": 19302
+      "rows": 19302,
+      "bounds": [
+        22.255,
+        40.995,
+        28.745,
+        44.245
+      ]
     },
     {
       "id": "Croatia",
       "name": "Croatia",
       "file": "Croatia.json",
-      "rows": 7247
+      "rows": 7247,
+      "bounds": [
+        13.495,
+        42.255,
+        19.505,
+        46.745
+      ]
     },
     {
       "id": "Czech_Republic",
       "name": "Czech Republic",
       "file": "Czech_Republic.json",
-      "rows": 4304
+      "rows": 4304,
+      "bounds": [
+        11.995,
+        48.495,
+        19.005,
+        51.005
+      ]
     },
     {
       "id": "France",
       "name": "France",
       "file": "France.json",
-      "rows": 30626
+      "rows": 30626,
+      "bounds": [
+        -5.005,
+        41.255,
+        9.745,
+        51.245
+      ]
     },
     {
       "id": "Germany",
       "name": "Germany",
       "file": "Germany.json",
-      "rows": 23292
+      "rows": 23292,
+      "bounds": [
+        5.755,
+        47.255,
+        15.245,
+        55.005
+      ]
     },
     {
       "id": "Greece",
       "name": "Greece",
       "file": "Greece.json",
-      "rows": 16937
+      "rows": 16937,
+      "bounds": [
+        19.495,
+        34.755,
+        28.245,
+        41.745
+      ]
     },
     {
       "id": "Hungary",
       "name": "Hungary",
       "file": "Hungary.json",
-      "rows": 11113
+      "rows": 11113,
+      "bounds": [
+        15.995,
+        45.495,
+        23.005,
+        48.745
+      ]
     },
     {
       "id": "Italy",
       "name": "Italy",
       "file": "Italy.json",
-      "rows": 47773
+      "rows": 47773,
+      "bounds": [
+        6.755,
+        35.495,
+        18.745,
+        47.005
+      ]
     },
     {
       "id": "Poland",
       "name": "Poland",
       "file": "Poland.json",
-      "rows": 15952
+      "rows": 15952,
+      "bounds": [
+        13.995,
+        48.995,
+        24.245,
+        55.005
+      ]
     },
     {
       "id": "Portugal",
       "name": "Portugal",
       "file": "Portugal.json",
-      "rows": 13627
+      "rows": 13627,
+      "bounds": [
+        -29.005,
+        32.495,
+        -5.995,
+        42.245
+      ]
     },
     {
       "id": "Romania",
       "name": "Romania",
       "file": "Romania.json",
-      "rows": 37372
+      "rows": 37372,
+      "bounds": [
+        20.255,
+        43.495,
+        29.745,
+        48.505
+      ]
     },
     {
       "id": "Spain",
       "name": "Spain",
       "file": "Spain.json",
-      "rows": 47169
+      "rows": 47169,
+      "bounds": [
+        -18.245,
+        27.495,
+        4.505,
+        43.745
+      ]
     },
     {
       "id": "Sweden",
       "name": "Sweden",
       "file": "Sweden.json",
-      "rows": 5702
+      "rows": 5702,
+      "bounds": [
+        10.995,
+        55.255,
+        24.245,
+        68.505
+      ]
     },
     {
       "id": "Turkey",
       "name": "Turkey",
       "file": "Turkey.json",
-      "rows": 79463
+      "rows": 79463,
+      "bounds": [
+        25.495,
+        35.755,
+        45.005,
+        42.245
+      ]
     },
     {
       "id": "Ukraine",
       "name": "Ukraine",
       "file": "Ukraine.json",
-      "rows": 140342
+      "rows": 140342,
+      "bounds": [
+        21.995,
+        44.255,
+        40.245,
+        52.505
+      ]
     }
   ]
 }

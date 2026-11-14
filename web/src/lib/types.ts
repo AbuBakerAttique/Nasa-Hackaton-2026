@@ -58,6 +58,8 @@ export interface CountryEntry {
   file: string;
   /** Number of rows in the file. */
   rows: number;
+  /** Area the country's squares cover: west, south, east, north, in degrees. */
+  bounds: [west: number, south: number, east: number, north: number];
 }
 
 /** public/data/index.json, written by scripts/copy-data.mjs. */

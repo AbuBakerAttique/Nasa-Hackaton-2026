@@ -1,4 +1,4 @@
-import { ROW_LENGTH, type CellRow } from "./types";
+import { ROW_LENGTH, type CellRow, type DataIndex } from "./types";
 
 /** An error whose message is written for the person using the app. */
 export class DataError extends Error {
@@ -76,4 +76,26 @@ export async function loadCountryCells(
   const rows = parseCells(value, file);
   cache.set(file, rows);
   return rows;
+}
+
+/**
+ * Checks public/data/index.json, which is read when the page is built.
+ * A JSON import types each country's bounds as a plain list of numbers; this
+ * makes sure each holds exactly four, so a bad index fails the build.
+ */
+export function parseIndex(value: {
+  firstYear: number;
+  lastYear: number;
+  countries: { id: string; name: string; file: string; rows: number; bounds: number[] }[];
+}): DataIndex {
+  return {
+    ...value,
+    countries: value.countries.map((c) => {
+      const [w, s, e, n, ...rest] = c.bounds;
+      if (rest.length || ![w, s, e, n].every(Number.isFinite) || w > e || s > n) {
+        throw new DataError(`index.json: the bounds of ${c.id} must be four numbers: west, south, east, north.`);
+      }
+      return { ...c, bounds: [w, s, e, n] };
+    }),
+  };
 }

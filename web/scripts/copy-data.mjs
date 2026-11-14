@@ -54,11 +54,19 @@ for (const file of files) {
   if (!Array.isArray(rows) || rows.length === 0) {
     fail(`${file} is empty or not a list of rows.`);
   }
+  // Area the country's squares cover: west, south, east, north, in degrees,
+  // to the outer edge of the 0.25° squares. The app uses it to find which
+  // countries a drawn region touches.
+  const bounds = [Infinity, Infinity, -Infinity, -Infinity];
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     if (!Array.isArray(row) || row.length !== ROW_LENGTH || !row.every(Number.isFinite)) {
       fail(`${file}, row ${i}: expected ${ROW_LENGTH} numbers, got ${JSON.stringify(row)}.`);
     }
+    bounds[0] = Math.min(bounds[0], row[1] - 0.125);
+    bounds[1] = Math.min(bounds[1], row[0] - 0.125);
+    bounds[2] = Math.max(bounds[2], row[1] + 0.125);
+    bounds[3] = Math.max(bounds[3], row[0] + 0.125);
     const year = row[2];
     if (year < firstYear) firstYear = year;
     if (year > lastYear) lastYear = year;
@@ -67,7 +75,8 @@ for (const file of files) {
   await copyFile(path.join(sourceCells, file), path.join(targetDir, "cells", file));
 
   const id = file.replace(/\.json$/, "");
-  countries.push({ id, name: id.replaceAll("_", " "), file, rows: rows.length });
+  const roundedBounds = bounds.map((v) => Math.round(v * 1000) / 1000);
+  countries.push({ id, name: id.replaceAll("_", " "), file, rows: rows.length, bounds: roundedBounds });
 }
 
 await copyFile(sourceReport, path.join(targetDir, "report.json"));

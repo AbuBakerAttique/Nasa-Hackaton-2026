@@ -113,7 +113,7 @@
     <p class="note">Status moves through: Not started, In progress, Built, Checked, Committed. This table is updated in the file as steps are finished. What was done in each finished step, and why, is written down in the <a href="#log">step log</a>.</p>
     <div class="scroll"><table>
       <thead><tr><th>Step</th><th>Task</th><th>Who</th><th>Status</th></tr></thead>
-      <tbody><tr><td class="t">0</td><td>Data pipeline and prototype</td><td>AI, Data</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">1</td><td><a href="#step1">Scaffold the Next.js app in web/</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">2</td><td><a href="#step2">Project shell (start page)</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">3</td><td><a href="#step3">Data contract, data files and loader</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">4</td><td><a href="#s4">Calculation library with tests</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">5</td><td><a href="#s5">Country menu and calendar</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">6</td><td><a href="#s6">Raw / corrected switch and date range</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">7</td><td><a href="#s7">Map with fire squares</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">8</td><td><a href="#s8">Region selection</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">9</td><td><a href="#s9">Findings and comparison panel</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">10</td><td><a href="#s10">Trend, extent and frequency views</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">11</td><td><a href="#s11">Downloads and shareable link</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">12</td><td><a href="#s12">Method page</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">13</td><td><a href="#s13">Live data route</a></td><td>Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">14</td><td><a href="#s14">Pipeline upgrades</a></td><td>AI and Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">15</td><td><a href="#s15">Polish and accessibility</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">16</td><td><a href="#s16">Deployment and submission</a></td><td>Story, then everyone</td><td><span class="st">Not started</span></td></tr></tbody>
+      <tbody><tr><td class="t">0</td><td>Data pipeline and prototype</td><td>AI, Data</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">1</td><td><a href="#step1">Scaffold the Next.js app in web/</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">2</td><td><a href="#step2">Project shell (start page)</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">3</td><td><a href="#step3">Data contract, data files and loader</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">4</td><td><a href="#step4">Calculation library with tests</a></td><td>Front end 1</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">5</td><td><a href="#step5">Country menu and calendar</a></td><td>Front end 1</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">6</td><td><a href="#step6">Raw / corrected switch and date range</a></td><td>Front end 1</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">7</td><td><a href="#step7">Map with fire squares</a></td><td>Front end 2</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">8</td><td><a href="#step8">Region selection</a></td><td>Front end 2</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">9</td><td><a href="#step9">Findings and comparison panel</a></td><td>Front end 1</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">10</td><td><a href="#step10">Trend, extent and frequency views</a></td><td>Front end 1</td><td><span class="st part">Checked</span></td></tr><tr><td class="t">11</td><td><a href="#s11">Downloads and shareable link</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">12</td><td><a href="#s12">Method page</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">13</td><td><a href="#s13">Live data route</a></td><td>Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">14</td><td><a href="#s14">Pipeline upgrades</a></td><td>AI and Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">15</td><td><a href="#s15">Polish and accessibility</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">16</td><td><a href="#s16">Deployment and submission</a></td><td>Story, then everyone</td><td><span class="st">Not started</span></td></tr></tbody>
     </table></div>
   </section>
 
@@ -308,82 +308,328 @@ npm install</pre>
         <dt>Commit</dt><dd><code>Add data types, country data files and loader</code></dd>
       </dl>
     </div>
+
+    <div class="entry" id="step4">
+      <p class="eyebrow">Step 4 · Front end 1 · <span class="st part">Checked</span></p>
+      <h3>Calculation library with tests</h3>
+      <dl>
+        <dt>What</dt><dd>Plain functions that turn country rows into a year-by-month table and read statements from it: totals, the rank of a month, median and average, main season, worst year, a year against a typical year, and a trend test. Plus unit tests, run with <code>npm test</code>.</dd>
+        <dt>Why</dt><dd>Every number on screen comes from here. Keeping the calculations out of the components means they can be tested once, and steps 5 to 11 only draw what these functions return.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/lib/stats.ts</code>: general helpers with no knowledge of fire. <code>sum</code>, <code>mean</code>, <code>median</code>, <code>normalCdf</code>, and <code>mannKendall</code>: the Mann-Kendall trend test with tie correction, plus Sen's slope (the median change per year).</li>
+            <li><code>web/src/lib/calendar.ts</code>: the fire calculations. <code>buildTable(rows, {record, measure, firstYear, lastYear})</code> adds up all squares per year and month. <code>record</code> is <code>"raw"</code> (MODIS until 2011, VIIRS from 2012) or <code>"corrected"</code>. <code>measure</code> is <code>"count"</code> or <code>"frp"</code>. Then <code>yearTotals</code>, <code>monthTotals</code>, <code>monthSeries</code>, <code>rankMonth</code>, <code>mainSeason</code>, <code>typicalYear</code>, <code>worstYear</code>, <code>compareYear</code>, <code>yearTrend</code> and <code>isEstimated</code>.</li>
+            <li>Months are 1 to 12 everywhere, as in the data files.</li>
+            <li>Vitest 4.1 added as a dev dependency, with <code>"test": "vitest run"</code> in <code>package.json</code>. No configuration file: the functions need no browser, so the default Node setup is enough.</li>
+            <li>Four test files next to the code: <code>stats.test.ts</code>, <code>calendar.test.ts</code>, <code>data.test.ts</code> (the wrong-format messages left open in step 3) and <code>pipeline-totals.test.ts</code>.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><code>npm test</code>: 4 files, 50 tests, all pass.</li>
+            <li><strong>Check against the pipeline:</strong> for all 16 countries, the 2022 to 2025 totals equal <code>actual_viirs</code> and <code>raw_modis</code> in <code>report.json</code>.</li>
+            <li><strong>Check against the prototype:</strong> the Germany table equals the prototype calendar on the project board for all four views (raw and corrected, detections and heat output), within the prototype's rounding to whole numbers.</li>
+            <li><strong>Check of the trend test:</strong> p-values for small series and for Germany's yearly totals match values computed with scipy.</li>
+            <li><code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>The typical year is the median of the year totals</strong>, as in the prototype. For an even number of years the median is the average of the two middle values. The prototype always had 25 years, so it never needed that.</li>
+            <li><strong>Ties:</strong> <code>mainSeason</code> and <code>worstYear</code> prefer the earlier month or year, so the same data always gives the same statement.</li>
+            <li><strong>Functions return <code>null</code> when there is nothing to say</strong>, for example the main season of an area with no fire. Components must show a sentence for that case, not a crash.</li>
+            <li><strong>For step 10:</strong> Germany's corrected record also shows a significant rise (S = 184, p &lt; 0.001), not only the raw record (S = 212). The planned check "the raw record shows a false rise that the corrected one does not" will need a country or region where that is true, or a different wording.</li>
+            <li><code>pipeline-totals.test.ts</code> reads the real files in <code>web/public/data/</code> and <code>assets/proto/Germany.js</code>. If it fails after a pipeline rerun, run <code>npm run copy-data</code> and rebuild the prototype data, or the numbers on the project board are out of date.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Unit test:</strong> a small program that calls one function with known input and checks the answer. <code>npm test</code> runs all of them in under a second.</li>
+            <li><strong>Median, not average:</strong> one extreme fire year pulls the average up a lot and the median hardly at all. The median is the fairer "typical year".</li>
+            <li><strong>Mann-Kendall:</strong> counts how often a later year is higher than an earlier one, against how often it is lower. If "higher" wins by much more than chance would give, the trend is real. It assumes no straight line and is not thrown off by one extreme year.</li>
+            <li><strong>p-value:</strong> the chance of seeing a trend this strong if there were none. Below 0.05 we call it significant.</li>
+            <li><strong>Why the trend is only fair on the corrected record:</strong> in the raw record the counts jump in 2012 because the newer sensor sees about three times more. The test would report that jump as a rise in fire.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add calculation library with unit tests</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step5">
+      <p class="eyebrow">Step 5 · Front end 1 · <span class="st part">Checked</span></p>
+      <h3>Country menu and calendar</h3>
+      <dl>
+        <dt>What</dt><dd>The start page now has the country menu and the burning calendar: one row per year from 2001 to 2025, one column per month, each cell coloured by the number of fire detections, with year totals on the right. It shows the corrected record. The temporary menu from step 3 is gone.</dd>
+        <dt>Why</dt><dd>The calendar is the product the challenge names. Everything after this step adds to it.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/components/FireCalendar.tsx</code> (<code>"use client"</code>): the country menu, starting on Germany as in the prototype. It loads the file with <code>useCountryData</code> and builds the table with <code>buildTable</code> from step 4.</li>
+            <li><code>web/src/components/CalendarGrid.tsx</code>: draws a <code>CalendarTable</code> as an HTML table. It only draws; every number comes from <code>lib/</code>.</li>
+            <li><code>web/src/lib/format.ts</code>: cell text (whole numbers, <code>12k</code> from 10,000, empty for 0), totals with thousands separators, month names and the heat colour. Same colours and number format as the prototype.</li>
+            <li><code>web/vitest.config.mts</code>: lets tests use the <code>@/</code> shortcut, so a test can render a component.</li>
+            <li>Removed: <code>web/src/components/DataCheck.tsx</code>, the temporary menu from step 3, including its "Atlantis" test entry. The missing-file message is still covered by the loader.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><strong>Done-when check:</strong> <code>CalendarGrid.test.tsx</code> renders the real component for Germany and compares the text of all 300 cells with the prototype calendar on the project board. All match. The only difference allowed is x.5 values: Python rounds them to the even number, JavaScript rounds up.</li>
+            <li><code>npm test</code>: 6 files, 58 tests, all pass. <code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass. The page is still built as a static page.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>HTML table, not ECharts.</strong> The technology table lists ECharts for the heatmap. A table matches the prototype, shows the numbers in every cell, works with a keyboard and screen readers, and adds no chart library. ECharts is still the plan for the line charts in step 10. For the calendar image in step 11, either draw the same table to a canvas or switch this one component to ECharts. Nothing else would change, because the numbers come from <code>lib/</code>.</li>
+            <li><strong>The colour scale</strong> uses the largest cell by default. <code>CalendarGrid</code> takes a <code>max</code>, so step 6 can give the raw and corrected records the same scale, as the prototype does.</li>
+            <li><strong>Not done yet, on purpose:</strong> the raw / corrected switch, marking estimated years and the date range (step 6), clicking a month (step 9), keeping the country in the page address (step 11).</li>
+            <li>On narrow screens the calendar scrolls sideways inside its box. The page itself does not.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Why two components:</strong> <code>FireCalendar</code> holds state and loads data, so it runs in the browser. <code>CalendarGrid</code> only turns a table into HTML. Because it has no state, the test can render it without a browser.</li>
+            <li><strong><code>useMemo</code>:</strong> adding up 23,000 rows is done once per country, not on every redraw.</li>
+            <li><strong>Square-root colours:</strong> fire months range from a few detections to thousands. On a straight scale every cell but the worst would look pale.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add country menu and burning calendar</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step6">
+      <p class="eyebrow">Step 6 · Front end 1 · <span class="st part">Checked</span></p>
+      <h3>Raw / corrected switch and date range</h3>
+      <dl>
+        <dt>What</dt><dd>A Corrected / Raw switch above the calendar, with a sentence explaining each record. In the corrected record the years before 2012 have dashed boxes because they are estimates. A coloured line marks where the newer satellite starts. Two menus, From and To, choose the years shown.</dd>
+        <dt>Why</dt><dd>The switch makes the harmonization visible: in the raw record the totals jump at 2012, in the corrected one they do not. The date range is required by the challenge.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/components/FireCalendar.tsx</code>: holds the record and the year range. It builds both records for the chosen years and gives them one shared colour scale, as the prototype does. Otherwise each record would be scaled to its own maximum and the jump would be hidden by the colours.</li>
+            <li>The From menu lists only years up to To, and To only years from From, so the range can never be reversed.</li>
+            <li>The switch is two buttons with <code>aria-pressed</code>, so a screen reader announces which record is on.</li>
+            <li><code>web/src/components/CalendarGrid.tsx</code>: dashed outline and the word "(estimated)" for screen readers on corrected years before 2012, and the line above 2012 when 2012 is not the first row shown. The cells carry <code>data-estimated</code> and the row <code>data-split</code>, which the tests read.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><strong>Done-when check</strong>, in <code>pipeline-totals.test.ts</code>. "Jump" is the average of 2012 to 2014 divided by the average of 2009 to 2011.
+              <ul>
+                <li>Germany: raw 3.28, corrected 1.04.</li>
+                <li>All 16 countries added together: raw 2.56, corrected 0.81.</li>
+                <li>In every country the raw jump is exactly 3.16 times the corrected one. That is <code>regional_ratio_all_cells</code> in <code>report.json</code>, the ratio the pipeline ships, so the app shows the correction exactly as the pipeline made it.</li>
+              </ul></li>
+            <li>Component tests: 132 cells (11 years × 12 months) marked estimated in the corrected record, none in the raw one. One line at 2012. A range of 2012 to 2015 shows 4 years and no line.</li>
+            <li><code>npm test</code>: 79 tests pass. <code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>Single countries are noisy.</strong> Sweden's corrected record rises 1.67 times around 2012 and Turkey's raw record only 1.52 times, because real fire changed in those years too. Do not use those two to demonstrate the switch. Germany, Greece, Italy and France show it best.</li>
+            <li><strong>The correction is one ratio for now.</strong> Before 2012 the corrected record is the MODIS count times 3.16. If step 14 ships a model instead, the ratio test above will fail on purpose. Replace it then.</li>
+            <li><strong>Not done:</strong> the detections / heat output switch from the prototype. The data and <code>buildTable</code> already support it (<code>measure: "frp"</code>), so it is a small addition if the team wants it.</li>
+            <li>Changing the country keeps the record and the year range.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Why the raw record jumps:</strong> the newer satellite, VIIRS, has smaller pixels and sees smaller fires, so it counts about three times more detections for the same fires.</li>
+            <li><strong>What "corrected" means here:</strong> the older satellite's counts multiplied up to the newer satellite's scale, so the 25 years can be compared with each other.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add record switch and date range</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step7">
+      <p class="eyebrow">Step 7 · Front end 2 · <span class="st part">Checked</span></p>
+      <h3>Map with fire squares</h3>
+      <dl>
+        <dt>What</dt><dd>A map under the calendar with one coloured square per 0.25° cell. Without a picked month it shows the chosen years added up. Clicking a month in the calendar shows that month; clicking it again, or "Show all months again", goes back. The map follows the country menu, the record switch and the year range.</dd>
+        <dt>Why</dt><dd>Shows where the fire was, not only when.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/lib/map.ts</code>: <code>squareValues</code> adds up fire per square for the years or one month, <code>viewBounds</code> finds the area to show, <code>squaresGeoJSON</code> turns squares into polygons with a colour position <code>t</code> on the same square-root scale as the calendar.</li>
+            <li><code>web/src/components/FireMap.tsx</code>: MapLibre GL 6.16.0 with the OpenFreeMap "positron" style (no key). MapLibre is imported only in the browser, after the component appears. If it cannot start (no WebGL), a message is shown and the calendar keeps working.</li>
+            <li><code>web/src/components/CalendarGrid.tsx</code>: with <code>onSelect</code> each month is a button, with <code>aria-pressed</code> and a full description for screen readers. The picked month gets a solid outline.</li>
+            <li><code>web/scripts/copy-map-worker.mjs</code>, run by <code>predev</code> and <code>prebuild</code>: copies MapLibre's worker to <code>public/vendor/</code>. That folder is ignored by git and by ESLint.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><strong>Done-when check, on the data:</strong> in October 2017, 83% of Portugal's corrected detections lie in central Portugal (39.5 to 41°N, 8.75 to 7°W), and the five largest squares are all there, around 40.1 to 40.4°N. That is the area of the fires of 15 October 2017 in the Coimbra, Viseu, Guarda and Leiria districts.</li>
+            <li>Every country keeps at least 90% of its fire inside the first view.</li>
+            <li><code>npm test</code>: 7 files, 103 tests pass. <code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass. The worker is served at <code>/vendor/maplibre-gl-worker.mjs</code>.</li>
+            <li><strong>Checked in Chrome</strong> (headless, with a screenshot): the map starts, Portugal is framed on the mainland, and after clicking October 2017 the darkest squares sit in central Portugal between Porto and Lisbon. No errors in the browser console.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>Why the worker is copied:</strong> MapLibre 6 looks for its worker file next to its own script. After Next.js bundles the script, that file is not there and the map stays empty. Setting the worker address to our own copy fixes it, on Vercel too, because <code>prebuild</code> runs there.</li>
+            <li><strong>Version 6.16.0 is pinned on purpose.</strong> 6.18.0 was three days old when this was built.</li>
+            <li><strong>Far islands are left out of the first view.</strong> Squares are split where there is a gap of more than 2°, and the group with the most fire is framed. Portugal opens on the mainland, not the Azores. Spain leaves out the Canary Islands, which hold 6% of its fire; they are still drawn and can be reached by moving the map.</li>
+            <li><strong>Rotation is switched off,</strong> so north is always up.</li>
+            <li>The map needs an internet connection for the background tiles. The squares come from our own data.</li>
+            <li>No single detections as dots yet, which the prototype had. They need data the app does not have yet (see step 13).</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>GeoJSON:</strong> the standard text format for shapes on a map. Each square is a polygon of five corner points, the last equal to the first.</li>
+            <li><strong>Worker:</strong> a script that runs beside the page, so cutting map tiles does not freeze scrolling and clicking.</li>
+            <li><strong>Why the map is loaded late:</strong> MapLibre needs <code>window</code> and WebGL, which do not exist while Next.js builds the page on the server.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add map with activity squares</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step8">
+      <p class="eyebrow">Step 8 · Front end 2 · <span class="st part">Checked</span></p>
+      <h3>Region selection</h3>
+      <dl>
+        <dt>What</dt><dd>A "Choose your own area" panel above the map: draw a rectangle or a polygon on the map, or type a south, north, west and east box. The calendar and the map then show only the squares whose centre lies inside the area, across borders. "Back to the whole country" returns to the menu's country; choosing another country does too.</dd>
+        <dt>Why</dt><dd>A selected area of interest is the central interaction in the challenge. Fire services work on districts, parks and forests, not countries.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/lib/region.ts</code>: <code>Region</code> is a box or a polygon. <code>rowsInRegion</code> keeps squares whose centre is inside, <code>countriesInRegion</code> finds every country file the area touches, <code>parseBox</code> reads the typed box and says what to fix, <code>regionLabel</code> names the area.</li>
+            <li><strong>Regions cross borders.</strong> The Brandenburg box reaches into Poland. So a region loads every country whose area overlaps it, not only the menu's country. For that, each country in <code>index.json</code> now has <code>bounds</code> (west, south, east, north). <code>scripts/copy-data.mjs</code> writes them from now on; for the data already in git they were added with the same calculation, without touching the country files.</li>
+            <li><code>web/src/hooks/useCells.ts</code> replaces <code>useCountryData.ts</code>: it loads one or several files and joins their rows. Each file is still downloaded only once.</li>
+            <li><code>web/src/components/RegionPanel.tsx</code>: the draw buttons, a hint for the chosen tool, and the box form. Commas are accepted as decimal separator.</li>
+            <li><code>web/src/components/FireMap.tsx</code>: terra-draw 1.38.0 with its MapLibre adapter 1.5.0 for drawing, and a dashed blue outline of the chosen area.</li>
+            <li><code>parseIndex</code> in <code>lib/data.ts</code> checks <code>index.json</code> when the page is built, so a malformed <code>bounds</code> fails the build instead of the page.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><strong>Done-when check:</strong> the box 51.35 to 53.56°N, 11.26 to 14.77°E loads Germany and Poland and gives 126 squares, the same as the prototype's "Brandenburg and Berlin area". Every month of both records equals the prototype within its rounding to whole numbers (<code>region.test.ts</code>). The same box drawn as a polygon selects the same squares.</li>
+            <li><strong>In Chrome</strong> (headless, with screenshots): typing the box shows year totals 120, 281, 487, … against the prototype's 119, 281, 486, …; clicking two corners on the map draws a rectangle and the calendar recalculates. No errors in the console.</li>
+            <li><strong>Fixed on the way:</strong> the data stores square centres rounded to two decimals (52.12 for 52.125), which left thin gaps and overlaps between squares on the map. <code>snapToGrid</code> puts them back on the exact 0.25° grid when drawing.</li>
+            <li><code>npm test</code>: 8 files, 118 tests pass. <code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>No Turf.js.</strong> The technology table lists Turf for "which squares lie inside a region". <code>pointInRing</code> in <code>region.ts</code> does that in ten lines with tests, so no library was added.</li>
+            <li><strong>Germany alone is not enough for Brandenburg:</strong> it gives 10,087 detections instead of 11,027. Nine border squares exist in both the German and the Polish file, each with that country's own detections, and both are counted.</li>
+            <li><strong>A rectangle is stored as a polygon</strong> after drawing. Only the typed box is stored as a box. Both select the same squares.</li>
+            <li><strong>The region is not in the page address yet.</strong> That comes with the shareable link in step 11.</li>
+            <li><strong>Do not run <code>npm run copy-data</code> from a partial pipeline run.</strong> It replaces <code>web/public/data/</code> completely.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Point in polygon:</strong> draw a line from the point to the east and count how often it crosses the polygon's edges. Odd means inside, even means outside. It works for any shape, also with dents.</li>
+            <li><strong>Why the square's centre decides:</strong> a square is either fully counted or not at all, because the data has no finer detail. Counting by centre is what the prototype did, so the numbers can be compared.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add region selection by drawing and coordinates</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step9">
+      <p class="eyebrow">Step 9 · Front end 1 · <span class="st part">Checked</span></p>
+      <h3>Findings and comparison panel</h3>
+      <dl>
+        <dt>What</dt><dd>Two boxes between the calendar and the map. "For fire services and forest managers" states the main season, the worst year and the latest year against a typical year. "Compare a month" appears when a month is clicked: how it ranks against the same month in every other year, its median and its average, and how far it is from the average. Both follow the country or region, the record and the year range.</dd>
+        <dt>Why</dt><dd>Turns the picture into statements a fire service can act on, and answers the challenge's "compare the current month against the historical median".</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/lib/findings.ts</code>: <code>describeTable</code> and <code>describeMonth</code> return the sentences, built from the step 4 functions. Keeping the wording in <code>lib/</code> means the exact sentences are unit tested.</li>
+            <li><code>web/src/components/FindingsPanel.tsx</code>: shows them, with a warning in the raw record.</li>
+            <li>Rules in the wording: the typical year and month are medians; a change under 5% reads "about the same as"; corrected years before 2012 are marked "(estimated)"; with fewer than 3 years in the range no year is compared; an area without fire says so.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><strong>Done-when check:</strong> the numbers were worked out by hand in Python from the data files, without the app's code, and <code>findings.test.ts</code> compares the full sentences:
+              <ul>
+                <li>Germany: April, July and August hold 46%; worst year 2025 with 3,935, 2.0 times the median of 1,982; 2025 is 99% above a typical year; July 2018 (882) is the highest July, against a median of 295 and an average of 332.</li>
+                <li>Brandenburg box (Germany and Poland): April, July and August hold 48%; worst year 2025 with 890, 2.4 times the median of 370; August 2022 (57) is above 10 of 24 Augusts and 19% below the average of 71.</li>
+              </ul></li>
+            <li>In Chrome: the panel shows these sentences for Germany and July 2018. No console errors.</li>
+            <li><code>npm test</code>: 9 files, 130 tests pass. <code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>2025 is the worst year</strong> in both Germany and Brandenburg in the corrected record. That fits the step 4 note: the corrected record rises over the 25 years too. Step 10 has to show this honestly.</li>
+            <li><strong>"Latest year" is the last year in the chosen range,</strong> not always 2025.</li>
+            <li>The prototype said "Latest full year, 2025". Once step 13 adds the current year from the daily feed, a part-year must not be compared with full years.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Median and average side by side:</strong> one huge fire month pulls the average up but not the median. When the two differ a lot, the month's history has rare extreme years.</li>
+            <li><strong>"More than 10 of 24":</strong> the rank among the other years. 24 of 24 is a record.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add findings and month comparison panel</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step10">
+      <p class="eyebrow">Step 10 · Front end 1 · <span class="st part">Checked</span></p>
+      <h3>Trend, extent and frequency views</h3>
+      <dl>
+        <dt>What</dt><dd>Two charts under the findings, and a second way to colour the map.
+          <ul>
+            <li><strong>Trend:</strong> yearly totals as bars, a dashed trend line, and one sentence: rising, falling or no clear trend, with the p-value. In the raw record it warns that the 2012 jump looks like a rise.</li>
+            <li><strong>Extent:</strong> how many map squares had fire in each month, with a line where the newer satellite starts.</li>
+            <li><strong>Frequency:</strong> "Colour squares by: Years with fire" colours each square by how many of the chosen years it burned, with a sentence such as "Half of the 660 squares with fire burned in at least 21 of the 25 years".</li>
+          </ul></dd>
+        <dt>Why</dt><dd>The challenge names seasonal patterns, anomalies and trends. A trend is only fair on the corrected record, and this view shows why.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/lib/trends.ts</code>: <code>trendOf</code> (totals, Mann-Kendall test and Sen's line), <code>describeTrend</code>, <code>extentByMonth</code>, <code>burnFrequency</code>, <code>describeFrequency</code> and <code>extentCaution</code>.</li>
+            <li><code>web/src/components/EChart.tsx</code>: Apache ECharts 6.1.0, loading only the bar and line charts, grid, tooltip, mark line and screen-reader description. Colours follow light and dark mode.</li>
+            <li><code>web/src/components/TrendsPanel.tsx</code>: the two charts and their sentences. Estimated years are lighter bars.</li>
+            <li>The frequency view uses a straight (linear) colour scale; the amount view keeps the square-root scale. <code>squaresGeoJSON</code> takes the scale as an option.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><strong>Done-when check:</strong> Italy's raw record rises by about 540 detections a year (p &lt; 0.001); the corrected record has no clear trend (p = 0.62). France likewise. Tested in <code>trends.test.ts</code> and seen in Chrome. Mann-Kendall S and p match scipy.</li>
+            <li>Mann-Kendall S per country, raw against corrected, 2001 to 2025:
+              <table><thead><tr><th>Country</th><th>Raw</th><th>Corrected</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>Austria</td><td>+156, p &lt; 0.001</td><td>−52, p = 0.23</td><td>False rise</td></tr>
+<tr><td>Czech Republic</td><td>+170, p &lt; 0.001</td><td>−27, p = 0.54</td><td>False rise</td></tr>
+<tr><td>France</td><td>+130, p = 0.003</td><td>−12, p = 0.80</td><td>False rise</td></tr>
+<tr><td>Greece</td><td>+124, p = 0.004</td><td>−44, p = 0.32</td><td>False rise</td></tr>
+<tr><td>Italy</td><td>+176, p &lt; 0.001</td><td>+22, p = 0.62</td><td>False rise</td></tr>
+<tr><td>Spain</td><td>+124, p = 0.004</td><td>−66, p = 0.13</td><td>False rise</td></tr>
+<tr><td>Turkey</td><td>+176, p &lt; 0.001</td><td>+32, p = 0.47</td><td>False rise</td></tr>
+<tr><td>Ukraine</td><td>+116, p = 0.007</td><td>−82, p = 0.06</td><td>False rise</td></tr>
+<tr><td>Romania</td><td>+102, p = 0.02</td><td>−86, p = 0.047</td><td>Rise turns into a fall</td></tr>
+<tr><td>Sweden</td><td>+99, p = 0.02</td><td>−102, p = 0.02</td><td>Rise turns into a fall</td></tr>
+<tr><td>Germany</td><td>+212, p &lt; 0.001</td><td>+184, p &lt; 0.001</td><td>Real rise</td></tr>
+<tr><td>Bulgaria, Hungary, Poland</td><td>no clear trend</td><td>significant fall</td><td>Fall only visible after correction</td></tr>
+<tr><td>Croatia, Portugal</td><td>no clear trend</td><td>no clear trend</td><td>No trend</td></tr>
+              </tbody></table></li>
+            <li><code>npm test</code>: 10 files, 141 tests pass. <code>npm run lint</code>, <code>npx tsc --noEmit</code> and <code>npm run build</code> pass.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>For the pitch:</strong> in 8 of 16 countries the raw record shows a significant rise that is not there after correction, and in 2 more a rise turns into a fall. That is the strongest single argument for the harmonization. Germany is the exception: its rise is real.</li>
+            <li><strong>The correction fixes counts, not extent.</strong> Before 2012 the corrected record only has fire in squares where the older satellite saw some, so about half as many squares burn per year as after 2012. The extent chart and the frequency map warn about this when the range starts before 2012. Fixing it is the "recover missed fires" model on the project board (step 14).</li>
+            <li><strong>Many squares burn almost every year</strong> in southern Europe: half of Italy's squares in at least 21 of 25 years, Portugal's in 23. In Germany the median is 11. Regular agricultural burning is a likely cause; worth checking before claiming it in the pitch.</li>
+            <li>Sen's slope is in detections per year. Germany's corrected record rises by about 72 a year.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Sen's slope:</strong> the median of the slopes between every pair of years. One extreme year barely moves it, unlike an ordinary straight-line fit.</li>
+            <li><strong>Extent and amount differ:</strong> one huge fire raises the amount but only a few squares; many small fires raise the extent. Both matter to a fire service.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add trend, extent and frequency views</code></dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="weather">
+      <p class="eyebrow">Extra · Weather context · <span class="st part">Checked</span></p>
+      <h3>Historical weather context (ERA5)</h3>
+      <dl>
+        <dt>What</dt><dd>A "Historical weather at one point" panel under the map. Choose a point on the map, a day and an hour (UTC); it shows ERA5 wind at 10 m in plain language, temperature and humidity at 2 m and the precipitation of the hour before, a slider through the day, a chart of the day's wind speed, and an arrow on the map pointing where the wind blows to. A picked calendar month limits the date picker to that month, but the day and hour are always chosen explicitly.</dd>
+        <dt>Why</dt><dd>Lets users see the wind around historical fire observations. It is context only: no fire prediction, spread, cause, ignition probability or arrival time, and it never changes fire counts or the harmonization.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/lib/weather.ts</code>: request URL (Open-Meteo archive API, <code>models=era5</code>, <code>timezone=GMT</code>, km/h, °C, mm), strict response check (units, UTC, 24 hours of the right day, missing values kept as null), wind from/to conversion, 16-point compass names, UTC timestamps.</li>
+            <li><code>web/src/lib/weatherApi.ts</code>: <code>WeatherCache</code>, one request per point (rounded to 0.01°), day and model; shared in-flight requests; failures are not cached. <code>currentWeather</code> shows a result only for the key it was loaded for.</li>
+            <li><code>web/src/hooks/useWeatherDay.ts</code> and <code>useHistoricalWeather.ts</code>: loading, cancelling and the point / day / hour state.</li>
+            <li><code>web/src/components/WeatherPanel.tsx</code>: the panel. <code>FireMap.tsx</code>: point picking (click) and the arrow marker. Picking a point and drawing a region switch each other off.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li>Open-Meteo checked live on 14 November 2026: <code>models=era5</code> is accepted (an unknown model is refused), CORS allows calls from the browser, and the answer names the ERA5 grid point used.</li>
+            <li>In Chrome: Portugal, October 2017, a point near 40°N 7.75°W, 15 October 12:00 UTC shows wind from the southeast (143°) towards the northwest at 18 km/h, 28 °C, 26% humidity; the arrow points to 323°. At 18:00 it turns to 333°. Moving the slider makes no new request. Starting a region drawing switches picking off.</li>
+            <li><code>npm test</code>: 12 files, 162 tests (35 new for weather). Lint, type check and build pass.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>Terms:</strong> the free Open-Meteo API is for non-commercial use only, under 10,000 calls a day per IP, data under CC BY 4.0. Requests go from each visitor's browser, so Vercel's shared IP does not count. Attribution to Open-Meteo and the Copernicus Climate Change Service is in the panel.</li>
+            <li>ERA5 is a reanalysis on a ~25 km grid: no local gusts or terrain winds. The panel says so and names the grid point used.</li>
+            <li>Not linked to step 11's shareable link yet: the weather point, day and hour are not in the page address.</li>
+          </ul></dd>
+      </dl>
+    </div>
   </section>
 
   <section id="steps">
     <p class="eyebrow">Next steps</p>
-    <h2>Steps 4 to 16</h2>
+    <h2>Steps 11 to 16</h2>
     <p class="note">Each step gets its full seven-part guide when we reach it, and an entry in the step log when it is built and checked.</p>
-    <div class="entry" id="s4">
-      <p class="eyebrow">Step 4 · Front end 1</p>
-      <h3>Calculation library with tests</h3>
-      <dl>
-        <dt>What</dt><dd>Plain functions: sum rows into a year-by-month table, rank a month, median, main season, yearly totals, trend test.</dd>
-        <dt>Why</dt><dd>Every number on screen comes from here, so it must be right and tested.</dd>
-        <dt>Done when</dt><dd>npm test passes, including a check against known pipeline totals.</dd>
-        <dt>Commit</dt><dd><code>Add calculation library with unit tests</code></dd>
-      </dl>
-    </div>
-    <div class="entry" id="s5">
-      <p class="eyebrow">Step 5 · Front end 1</p>
-      <h3>Country menu and calendar</h3>
-      <dl>
-        <dt>What</dt><dd>The country menu and the year-by-month heatmap.</dd>
-        <dt>Why</dt><dd>The calendar is the product the challenge names.</dd>
-        <dt>Done when</dt><dd>The Germany calendar matches the prototype&#x27;s numbers.</dd>
-        <dt>Commit</dt><dd><code>Add country menu and burning calendar</code></dd>
-      </dl>
-    </div>
-    <div class="entry" id="s6">
-      <p class="eyebrow">Step 6 · Front end 1</p>
-      <h3>Raw / corrected switch and date range</h3>
-      <dl>
-        <dt>What</dt><dd>The switch between the raw and the corrected record, estimated years marked, and start and end year selectors.</dd>
-        <dt>Why</dt><dd>The switch makes the harmonization visible. The date range is required by the challenge.</dd>
-        <dt>Done when</dt><dd>Year totals jump at 2012 in raw mode and not in corrected mode.</dd>
-        <dt>Commit</dt><dd><code>Add record switch and date range</code></dd>
-      </dl>
-    </div>
-    <div class="entry" id="s7">
-      <p class="eyebrow">Step 7 · Front end 2</p>
-      <h3>Map with fire squares</h3>
-      <dl>
-        <dt>What</dt><dd>A map coloured by activity per square, updating when a month is clicked.</dd>
-        <dt>Why</dt><dd>Shows where the fire was, not only when.</dd>
-        <dt>Done when</dt><dd>October 2017 in Portugal shows the known cluster.</dd>
-        <dt>Commit</dt><dd><code>Add map with activity squares</code></dd>
-      </dl>
-    </div>
-    <div class="entry" id="s8">
-      <p class="eyebrow">Step 8 · Front end 2</p>
-      <h3>Region selection</h3>
-      <dl>
-        <dt>What</dt><dd>Draw a polygon or rectangle, or type a latitude and longitude box. The calendar recalculates for the squares inside.</dd>
-        <dt>Why</dt><dd>A selected area of interest is the central interaction in the challenge.</dd>
-        <dt>Done when</dt><dd>A box around Brandenburg gives the same totals as the prototype&#x27;s Brandenburg region.</dd>
-        <dt>Commit</dt><dd><code>Add region selection by drawing and coordinates</code></dd>
-      </dl>
-    </div>
-    <div class="entry" id="s9">
-      <p class="eyebrow">Step 9 · Front end 1</p>
-      <h3>Findings and comparison panel</h3>
-      <dl>
-        <dt>What</dt><dd>Main season, worst year, latest year against a typical year, the selected month against its median and the multi-year average.</dd>
-        <dt>Why</dt><dd>Turns the picture into statements a fire service can act on.</dd>
-        <dt>Done when</dt><dd>The statements match hand calculations for two regions.</dd>
-        <dt>Commit</dt><dd><code>Add findings and month comparison panel</code></dd>
-      </dl>
-    </div>
-    <div class="entry" id="s10">
-      <p class="eyebrow">Step 10 · Front end 1</p>
-      <h3>Trend, extent and frequency views</h3>
-      <dl>
-        <dt>What</dt><dd>Yearly totals with a trend line and significance, squares burning per month, and years each square burned.</dd>
-        <dt>Why</dt><dd>The challenge names trends, and a trend is only fair on the corrected record.</dd>
-        <dt>Done when</dt><dd>The raw record shows a false rise that the corrected record does not.</dd>
-        <dt>Commit</dt><dd><code>Add trend, extent and frequency views</code></dd>
-      </dl>
-    </div>
     <div class="entry" id="s11">
       <p class="eyebrow">Step 11 · Front end 2</p>
       <h3>Downloads and shareable link</h3>

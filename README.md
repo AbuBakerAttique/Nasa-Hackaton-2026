@@ -83,7 +83,7 @@ npm install        # once, and again after pulling changes to package.json
 npm run dev        # open http://localhost:3000
 ```
 
-`npm run build` makes the production build and `npm run lint` checks the code. Both must pass before a commit. What was built in each step, and why, is in the step log in `development-plan.html`.
+`npm run build` makes the production build, `npm run lint` checks the code and `npm test` runs the unit tests. All three must pass before a commit. What was built in each step, and why, is in the step log in `development-plan.html`.
 
 ## Current result
 
@@ -92,3 +92,5 @@ npm run dev        # open http://localhost:3000
 ## Data source
 
 NASA FIRMS active fire data, MODIS and VIIRS S-NPP: https://www.earthdata.nasa.gov/data/tools/firms
+
+Historical weather context (optional panel under the map): [Open-Meteo](https://open-meteo.com/) Historical Weather API, ERA5 reanalysis only, CC BY 4.0, generated using Copernicus Climate Change Service information. The free API is for non-commercial use (under 10,000 calls a day). The browser calls it directly; no key is needed.
