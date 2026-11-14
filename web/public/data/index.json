@@ -1,0 +1,102 @@
+{
+  "firstYear": 2001,
+  "lastYear": 2025,
+  "countries": [
+    {
+      "id": "Austria",
+      "name": "Austria",
+      "file": "Austria.json",
+      "rows": 2089
+    },
+    {
+      "id": "Bulgaria",
+      "name": "Bulgaria",
+      "file": "Bulgaria.json",
+      "rows": 19302
+    },
+    {
+      "id": "Croatia",
+      "name": "Croatia",
+      "file": "Croatia.json",
+      "rows": 7247
+    },
+    {
+      "id": "Czech_Republic",
+      "name": "Czech Republic",
+      "file": "Czech_Republic.json",
+      "rows": 4304
+    },
+    {
+      "id": "France",
+      "name": "France",
+      "file": "France.json",
+      "rows": 30626
+    },
+    {
+      "id": "Germany",
+      "name": "Germany",
+      "file": "Germany.json",
+      "rows": 23292
+    },
+    {
+      "id": "Greece",
+      "name": "Greece",
+      "file": "Greece.json",
+      "rows": 16937
+    },
+    {
+      "id": "Hungary",
+      "name": "Hungary",
+      "file": "Hungary.json",
+      "rows": 11113
+    },
+    {
+      "id": "Italy",
+      "name": "Italy",
+      "file": "Italy.json",
+      "rows": 47773
+    },
+    {
+      "id": "Poland",
+      "name": "Poland",
+      "file": "Poland.json",
+      "rows": 15952
+    },
+    {
+      "id": "Portugal",
+      "name": "Portugal",
+      "file": "Portugal.json",
+      "rows": 13627
+    },
+    {
+      "id": "Romania",
+      "name": "Romania",
+      "file": "Romania.json",
+      "rows": 37372
+    },
+    {
+      "id": "Spain",
+      "name": "Spain",
+      "file": "Spain.json",
+      "rows": 47169
+    },
+    {
+      "id": "Sweden",
+      "name": "Sweden",
+      "file": "Sweden.json",
+      "rows": 5702
+    },
+    {
+      "id": "Turkey",
+      "name": "Turkey",
+      "file": "Turkey.json",
+      "rows": 79463
+    },
+    {
+      "id": "Ukraine",
+      "name": "Ukraine",
+      "file": "Ukraine.json",
+      "rows": 140342
+    }
+  ]
+}

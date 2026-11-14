@@ -1,0 +1,82 @@
+// Copies the pipeline output into the web app.
+//
+//   data/out/cells/{Country}.json  ->  web/public/data/cells/{Country}.json
+//   data/out/report.json           ->  web/public/data/report.json
+//   (written here)                 ->  web/public/data/index.json
+//
+// Run it from web/ with:  npm run copy-data
+// Run it again every time the pipeline has been rerun, then commit web/public/data/.
+
+import { existsSync } from "node:fs";
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const webDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const sourceDir = path.resolve(webDir, "..", "data", "out");
+const targetDir = path.join(webDir, "public", "data");
+
+/** Number of values in one row. Must match CellRow in src/lib/types.ts. */
+const ROW_LENGTH = 10;
+
+function fail(message) {
+  console.error(`copy-data: ${message}`);
+  process.exit(1);
+}
+
+const sourceCells = path.join(sourceDir, "cells");
+const sourceReport = path.join(sourceDir, "report.json");
+
+if (!existsSync(sourceCells) || !existsSync(sourceReport)) {
+  fail(
+    `the pipeline output is missing in ${sourceDir}.\n` +
+      "Run the pipeline first, from the repository root:\n" +
+      "  venv/bin/python pipeline/01_download.py\n" +
+      "  venv/bin/python pipeline/02_harmonize.py",
+  );
+}
+
+const files = (await readdir(sourceCells)).filter((f) => f.endsWith(".json")).sort();
+if (files.length === 0) fail(`no country files found in ${sourceCells}.`);
+
+// Everything in the target folder is generated, so start clean.
+// This removes files of countries the pipeline no longer produces.
+await rm(targetDir, { recursive: true, force: true });
+await mkdir(path.join(targetDir, "cells"), { recursive: true });
+
+const countries = [];
+let firstYear = Infinity;
+let lastYear = -Infinity;
+
+for (const file of files) {
+  const rows = JSON.parse(await readFile(path.join(sourceCells, file), "utf8"));
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    fail(`${file} is empty or not a list of rows.`);
+  }
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (!Array.isArray(row) || row.length !== ROW_LENGTH || !row.every(Number.isFinite)) {
+      fail(`${file}, row ${i}: expected ${ROW_LENGTH} numbers, got ${JSON.stringify(row)}.`);
+    }
+    const year = row[2];
+    if (year < firstYear) firstYear = year;
+    if (year > lastYear) lastYear = year;
+  }
+
+  await copyFile(path.join(sourceCells, file), path.join(targetDir, "cells", file));
+
+  const id = file.replace(/\.json$/, "");
+  countries.push({ id, name: id.replaceAll("_", " "), file, rows: rows.length });
+}
+
+await copyFile(sourceReport, path.join(targetDir, "report.json"));
+
+const index = { firstYear, lastYear, countries };
+await writeFile(path.join(targetDir, "index.json"), JSON.stringify(index, null, 2) + "\n");
+
+const totalRows = countries.reduce((sum, c) => sum + c.rows, 0);
+console.log(
+  `copy-data: ${countries.length} countries, ${totalRows.toLocaleString("en")} rows, ` +
+    `${firstYear} to ${lastYear}, written to ${path.relative(webDir, targetDir)}/`,
+);

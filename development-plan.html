@@ -94,7 +94,7 @@
 <div class="wrap">
   <p class="eyebrow">NASA Space Apps 2026 · Cottbus · Harmonization of MODIS and VIIRS Hot Spots</p>
   <h1>Fire Calendar · Development Plan</h1>
-  <p class="lede">How we build the web app on Vercel, one step at a time: build, check, understand, then commit.</p>
+  <p class="lede">How we build the web app, one step at a time: build, check, understand, then commit. It goes on Vercel at the end.</p>
 
   <nav>
     <a href="index.html">← Project board</a>
@@ -102,18 +102,18 @@
     <a href="#stack">Technology</a>
     <a href="#architecture">Architecture</a>
     <a href="#rules">How we work</a>
-    <a href="#step1">Step 1 in detail</a>
-    <a href="#steps">All steps</a>
+    <a href="#log">Step log</a>
+    <a href="#steps">Next steps</a>
     <a href="#deploy">Deployment</a>
   </nav>
 
   <section id="progress">
     <p class="eyebrow">Progress</p>
     <h2>Where we are</h2>
-    <p class="note">Status moves through: Not started, In progress, Built, Checked, Committed. This table is updated in the file as steps are finished.</p>
+    <p class="note">Status moves through: Not started, In progress, Built, Checked, Committed. This table is updated in the file as steps are finished. What was done in each finished step, and why, is written down in the <a href="#log">step log</a>.</p>
     <div class="scroll"><table>
       <thead><tr><th>Step</th><th>Task</th><th>Who</th><th>Status</th></tr></thead>
-      <tbody><tr><td class="t">0</td><td>Data pipeline and prototype</td><td>AI, Data</td><td><span class="st part">Built, not committed</span></td></tr><tr><td class="t">1</td><td><a href="#step1">Scaffold the Next.js app in web/</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">2</td><td><a href="#s2">Deploy to Vercel</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">3</td><td><a href="#s3">Data contract, data files and loader</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">4</td><td><a href="#s4">Calculation library with tests</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">5</td><td><a href="#s5">Country menu and calendar</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">6</td><td><a href="#s6">Raw / corrected switch and date range</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">7</td><td><a href="#s7">Map with fire squares</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">8</td><td><a href="#s8">Region selection</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">9</td><td><a href="#s9">Findings and comparison panel</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">10</td><td><a href="#s10">Trend, extent and frequency views</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">11</td><td><a href="#s11">Downloads and shareable link</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">12</td><td><a href="#s12">Method page</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">13</td><td><a href="#s13">Live data route</a></td><td>Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">14</td><td><a href="#s14">Pipeline upgrades</a></td><td>AI and Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">15</td><td><a href="#s15">Polish and accessibility</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">16</td><td><a href="#s16">Submission</a></td><td>Story, then everyone</td><td><span class="st">Not started</span></td></tr></tbody>
+      <tbody><tr><td class="t">0</td><td>Data pipeline and prototype</td><td>AI, Data</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">1</td><td><a href="#step1">Scaffold the Next.js app in web/</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">2</td><td><a href="#step2">Project shell (start page)</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">3</td><td><a href="#step3">Data contract, data files and loader</a></td><td>Front end</td><td><span class="st done">Committed</span></td></tr><tr><td class="t">4</td><td><a href="#s4">Calculation library with tests</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">5</td><td><a href="#s5">Country menu and calendar</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">6</td><td><a href="#s6">Raw / corrected switch and date range</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">7</td><td><a href="#s7">Map with fire squares</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">8</td><td><a href="#s8">Region selection</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">9</td><td><a href="#s9">Findings and comparison panel</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">10</td><td><a href="#s10">Trend, extent and frequency views</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">11</td><td><a href="#s11">Downloads and shareable link</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">12</td><td><a href="#s12">Method page</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">13</td><td><a href="#s13">Live data route</a></td><td>Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">14</td><td><a href="#s14">Pipeline upgrades</a></td><td>AI and Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">15</td><td><a href="#s15">Polish and accessibility</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">16</td><td><a href="#s16">Deployment and submission</a></td><td>Story, then everyone</td><td><span class="st">Not started</span></td></tr></tbody>
     </table></div>
   </section>
 
@@ -174,79 +174,146 @@
       <li><strong>Check</strong> it with the validation listed for that step.</li>
       <li><strong>Understand</strong> it. Everyone on the team can explain what it does.</li>
       <li><strong>Commit</strong> when the team says so, with the suggested message.</li>
+      <li><strong>Record</strong> it in the <a href="#log">step log</a>: what we built, why, how, the result of each check, and anything the next person should know.</li>
       <li>Only then start the next step.</li>
     </ol>
-    <p>Steps 1 to 3 go in order. After step 3 the work splits: the two front-end people share steps 4 to 12, the data person takes step 13, the AI person step 14, and the story person starts step 16 right away.</p>
+    <p>Steps 1 to 3 go in order and are built. After step 3 the work splits: the two front-end people share steps 4 to 12, the data person takes step 13, the AI person step 14, and the story person starts step 16 right away.</p>
   </section>
 
-  <section id="step1">
-    <p class="eyebrow">Current step</p>
-    <h2>Step 1: Scaffold the Next.js app in web/</h2>
-    <h3>1. What are we building?</h3>
-    <p>An empty Next.js application in a new <code>web/</code> folder, with TypeScript in strict mode, Tailwind and ESLint. No features yet.</p>
-    <h3>2. Why are we building it?</h3>
-    <p>Every later step lives inside it. Doing it alone first means that when something breaks later, we know the base was sound.</p>
-    <h3>3. How will we build it?</h3>
-    <p>From the repo root:</p>
-    <pre>npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm</pre>
-    <p>If it asks further questions: Turbopack yes, React Compiler no, anything else no. Then:</p>
-    <pre>cd web
-npm run dev        # open http://localhost:3000
-npm run build
-npm run lint</pre>
-    <h3>4. Expected outcome</h3>
-    <ul>
-      <li>A <code>web/</code> folder with <code>src/app/page.tsx</code>, <code>src/app/layout.tsx</code>, <code>package.json</code> and <code>tsconfig.json</code>.</li>
-      <li>The Next.js start page in the browser.</li>
-    </ul>
-    <h3>5. Validation</h3>
-    <ul>
-      <li><code>npm run dev</code> serves the start page with no errors.</li>
-      <li><code>npm run build</code> ends with a success summary.</li>
-      <li><code>npm run lint</code> reports no problems.</li>
-      <li><code>web/tsconfig.json</code> contains <code>"strict": true</code>.</li>
-      <li>There is no <code>web/.git</code> folder. If there is, delete it.</li>
-      <li>From the repo root, <code>git status</code> shows <code>web/</code> as new and does not list <code>web/node_modules</code>.</li>
-    </ul>
-    <h3>6. Understanding</h3>
-    <ul>
-      <li><strong>Why a web/ subfolder:</strong> the repo holds two separate things, the Python pipeline and the web app. Vercel is told to build only <code>web/</code>.</li>
-      <li><strong>App Router:</strong> each folder under <code>src/app/</code> is a page address. <code>page.tsx</code> is the page, <code>layout.tsx</code> wraps all pages.</li>
-      <li><strong>Server and client components:</strong> by default a component runs on the server and sends HTML. Anything interactive needs <code>"use client"</code> at the top of its file.</li>
-      <li><strong>Strict TypeScript:</strong> the compiler refuses values that might be missing. It prevents the "undefined" errors that break demos.</li>
-      <li><strong>npm run build:</strong> this is what Vercel runs. If it passes locally, the deploy almost always passes too.</li>
-    </ul>
-    <h3>7. Git commit</h3>
-    <ul>
-      <li>First the work that already exists: <code>Add data pipeline, project board and docs</code>.</li>
-      <li>Then the scaffold: <code>Add Next.js app scaffold in web/</code>, everything in <code>web/</code> except <code>node_modules</code> and <code>.next</code>.</li>
-    </ul>
-  </section>
+  <section id="log">
+    <p class="eyebrow">Step log</p>
+    <h2>What we have done, and why</h2>
+    <p>One entry per step, written when the step is built and checked. Read this to catch up. Each entry says what was built, why, how, what the checks showed, and what to keep in mind.</p>
 
-  <section id="steps">
-    <p class="eyebrow">All steps</p>
-    <h2>Steps 2 to 16</h2>
-    <p class="note">Each step gets its full seven-part guide, like Step 1 above, when we reach it.</p>
-    <div class="entry" id="s2">
-      <p class="eyebrow">Step 2 · Front end</p>
-      <h3>Deploy to Vercel</h3>
+    <div class="entry" id="step0">
+      <p class="eyebrow">Step 0 · AI, Data · <span class="st done">Committed</span></p>
+      <h3>Data pipeline and prototype</h3>
       <dl>
-        <dt>What</dt><dd>Connect the GitHub repository to Vercel with root directory web.</dd>
-        <dt>Why</dt><dd>The public link exists from the first hour and every push is tested for real.</dd>
-        <dt>Done when</dt><dd>The production link opens on a phone without a login. A branch gets its own preview link.</dd>
+        <dt>What</dt><dd>Two Python scripts that download the NASA fire files and turn them into one corrected record per country, plus the project board with a working prototype.</dd>
+        <dt>Why</dt><dd>The web app only shows data. The data and the proof that the correction works had to exist first.</dd>
+        <dt>How</dt><dd><code>pipeline/01_download.py</code> then <code>pipeline/02_harmonize.py</code>. The README has the commands. Output lands in <code>data/out/</code>, which is not in git.</dd>
+        <dt>Result</dt><dd>16 European countries, one file each in <code>data/out/cells/</code>, and <code>report.json</code> with the accuracy on the held-out years 2022 to 2025. The best method so far is one fixed ratio for all countries. The machine-learning model does not beat it yet.</dd>
+        <dt>Commit</dt><dd><code>Add data pipeline, project board, development plan and docs</code> (91ded23)</dd>
+      </dl>
+    </div>
+
+    <div class="entry" id="step1">
+      <p class="eyebrow">Step 1 · Front end · <span class="st done">Committed</span></p>
+      <h3>Scaffold the Next.js app in web/</h3>
+      <dl>
+        <dt>What</dt><dd>An empty Next.js 16.4.6 application in <code>web/</code>, with React 19, TypeScript in strict mode, Tailwind 4, ESLint, the App Router and a <code>src/</code> folder. No features.</dd>
+        <dt>Why</dt><dd>Every later step lives inside it. Doing it alone first means that when something breaks later, we know the base was sound.</dd>
+        <dt>How</dt><dd>From the repo root:
+          <pre>npx create-next-app@latest web --ts --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --disable-git
+cd web
+npm install</pre>
+          <code>--disable-git</code> stops the tool from creating a second git repository inside ours.</dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><code>npm run lint</code>: no problems.</li>
+            <li><code>npm run build</code>: compiled, the start page is built as a static page.</li>
+            <li><code>npx tsc --noEmit</code>: no type errors.</li>
+            <li><code>npm run dev</code>: the start page answers on <code>localhost:3000</code>.</li>
+            <li><code>web/tsconfig.json</code> contains <code>"strict": true</code>. There is no <code>web/.git</code>. <code>node_modules</code> and <code>.next</code> are ignored by git.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>After cloning or pulling, run <code>npm install</code> inside <code>web/</code></strong> before <code>npm run dev</code>. <code>node_modules</code> is not in git.</li>
+            <li><strong>Edits to <code>src/app/globals.css</code> do not show up in a running dev server.</strong> Stop it with Ctrl+C and run <code>npm run dev</code> again. Edits to <code>.tsx</code> files, including new Tailwind classes, show up at once. The production build is not affected.</li>
+            <li><strong>Cache Components is switched on</strong> in <code>web/next.config.ts</code>. The tool does this by default. It does not matter for static pages. It changes how server-side data loading behaves, so check it again in step 13.</li>
+            <li><strong><code>web/AGENTS.md</code></strong> is created by Next.js and recreated by <code>npm run dev</code> if deleted. It tells AI coding tools to read the Next.js documentation shipped in <code>node_modules/next/dist/docs/</code>, because this version differs from older ones. We keep it in git.</li>
+            <li><code>npm audit</code> lists 7 moderate issues. All are in the lint tooling, which never reaches users. Left alone.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Why a web/ subfolder:</strong> the repo holds two separate things, the Python pipeline and the web app. Vercel is told to build only <code>web/</code>.</li>
+            <li><strong>App Router:</strong> each folder under <code>src/app/</code> is a page address. <code>page.tsx</code> is the page, <code>layout.tsx</code> wraps all pages.</li>
+            <li><strong>Server and client components:</strong> by default a component runs on the server and sends HTML. Anything interactive needs <code>"use client"</code> at the top of its file.</li>
+            <li><strong>Strict TypeScript:</strong> the compiler refuses values that might be missing. It prevents the "undefined" errors that break demos.</li>
+            <li><strong>npm run build:</strong> this is what Vercel runs. If it passes locally, the deploy almost always passes too.</li>
+            <li><strong>package-lock.json:</strong> pins the exact version of every library, so all five laptops and Vercel install the same thing. It is committed.</li>
+          </ul></dd>
+        <dt>Commit</dt><dd><code>Add Next.js app scaffold in web/</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="step2">
+      <p class="eyebrow">Step 2 · Front end · <span class="st done">Committed</span></p>
+      <h3>Project shell (start page)</h3>
+      <dl>
+        <dt>What</dt><dd>Our own start page in place of the Next.js one: project name, one-line description, an area for the calendar, and the data credit.</dd>
+        <dt>Why</dt><dd>Every later page needs the same frame. Building it once now means no page repeats the header and footer.</dd>
+        <dt>Changed plan</dt><dd>This step used to include the Vercel deploy. On Saturday the team decided to build first and deploy at the end, so the deploy moved to <a href="#s16">step 16</a>.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/src/app/layout.tsx</code> holds the header and footer and sets the browser tab title to "Fire Calendar".</li>
+            <li><code>web/src/app/page.tsx</code> is the start page.</li>
+            <li><code>web/src/app/globals.css</code> defines three colours, <code>muted</code>, <code>line</code> and <code>accent</code>, for light and dark mode. Use them as <code>text-muted</code>, <code>border-line</code>, <code>text-accent</code>.</li>
+            <li>The five sample pictures in <code>web/public/</code> that came with the scaffold are removed. Nothing used them.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><code>npm run lint</code>, <code>npm run build</code> and <code>npx tsc --noEmit</code> pass.</li>
+            <li>The production build was opened in a browser at phone, tablet and desktop width. The layout holds, nothing scrolls sideways, and the console shows no errors.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>Layout and page:</strong> <code>layout.tsx</code> is the frame around every page. <code>page.tsx</code> is what goes inside the frame for one address. The method page in step 12 gets the same header for free.</li>
+            <li><strong>Colours as names:</strong> the colours are defined once and used by name. Changing the accent colour later is a one-line change, and dark mode works without extra classes.</li>
+          </ul></dd>
         <dt>Commit</dt><dd><code>Replace start page with project shell</code></dd>
       </dl>
     </div>
-    <div class="entry" id="s3">
-      <p class="eyebrow">Step 3 · Front end</p>
+
+    <div class="entry" id="step3">
+      <p class="eyebrow">Step 3 · Front end · <span class="st done">Committed</span></p>
       <h3>Data contract, data files and loader</h3>
       <dl>
-        <dt>What</dt><dd>TypeScript types for a data row, a script that copies the pipeline output into the app, and a loader with loading and error states.</dd>
-        <dt>Why</dt><dd>This is the contract between the pipeline and the app.</dd>
-        <dt>Done when</dt><dd>Choosing a country shows its row count. A wrong file name shows a readable error.</dd>
+        <dt>What</dt><dd>The data is now inside the web app, with a description of its format in TypeScript, a function that loads one country, and a temporary menu that proves it works.</dd>
+        <dt>Why</dt><dd>This is the contract between the pipeline and the app. Every number on screen will be read through it, so the format is written down once and checked when a file is loaded.</dd>
+        <dt>How</dt><dd>
+          <ul>
+            <li><code>web/scripts/copy-data.mjs</code>, run with <code>npm run copy-data</code> inside <code>web/</code>. It copies the 16 country files and <code>report.json</code> from <code>data/out/</code> into <code>web/public/data/</code>, checks that every row holds 10 numbers, and writes <code>index.json</code> with the country list, row counts and the first and last year.</li>
+            <li><code>web/src/lib/types.ts</code>: <code>CellRow</code> describes one row. <code>COL</code> gives the position of each value by name. <code>VIIRS_FIRST_YEAR</code> is 2012.</li>
+            <li><code>web/src/lib/data.ts</code>: <code>loadCountryCells</code> downloads one country file, checks its format and remembers it, so going back to a country does not download it again.</li>
+            <li><code>web/src/hooks/useCountryData.ts</code>: gives a component one of four states: idle, loading, ready with the rows, or error with a message.</li>
+            <li><code>web/src/components/DataCheck.tsx</code>: the temporary menu. Step 5 replaces it.</li>
+            <li>The root <code>.gitignore</code> said <code>data/</code>, which also hid <code>web/public/data/</code> from git. It now says <code>/data/</code>, which only covers the pipeline folder.</li>
+          </ul></dd>
+        <dt>Result</dt><dd>
+          <ul>
+            <li><code>npm run copy-data</code>: 16 countries, 502,310 rows, 2001 to 2025.</li>
+            <li><code>npm run lint</code>, <code>npm run build</code> and <code>npx tsc --noEmit</code> pass.</li>
+            <li>In a browser, on the production build: Germany shows 23,292 rows, Ukraine 140,342, Czech Republic 4,304. These equal the row counts of the pipeline files.</li>
+            <li>The test entry for a missing file shows: <em>The data file "Atlantis.json" was not found.</em></li>
+            <li>Choosing two countries quickly, one after the other, ends on the second one.</li>
+            <li><strong>Not tested yet:</strong> the message for a file with a wrong format. It gets a unit test in step 4.</li>
+          </ul></dd>
+        <dt>Good to know</dt><dd>
+          <ul>
+            <li><strong>After the pipeline is rerun, run <code>npm run copy-data</code> and commit <code>web/public/data/</code>.</strong> The deployed site only has the data that is in git.</li>
+            <li><strong>Read rows by name, not by number:</strong> <code>row[COL.year]</code>, not <code>row[2]</code>.</li>
+            <li><strong>A <code>viirsRaw</code> of 0 before 2012 means "no data", not "no fire".</strong> The newer sensor did not exist yet.</li>
+            <li><strong>The record starts in 2001</strong>, not 2000. That is 25 years, 2001 to 2025.</li>
+            <li><strong>Size:</strong> <code>web/public/data/</code> adds 27 MB to the repository. Ukraine is the largest file, 7 MB on disk and about 1.5 MB when sent compressed. It will take a moment on mobile data.</li>
+          </ul></dd>
+        <dt>Understanding</dt><dd>
+          <ul>
+            <li><strong>The public folder:</strong> files in <code>web/public/</code> are served as they are. <code>public/data/cells/Germany.json</code> is reachable at <code>/data/cells/Germany.json</code>.</li>
+            <li><strong>Why one file per country:</strong> all countries together are 23 MB. The browser only downloads the one that is chosen.</li>
+            <li><strong>Types as a contract:</strong> <code>CellRow</code> tells the compiler what a row looks like. A file is still checked when it is loaded, because the compiler cannot see the contents of a downloaded file.</li>
+            <li><strong>Hook:</strong> a function whose name starts with <code>use</code> and that keeps state for a component. <code>useCountryData</code> hides the downloading, so a component only asks "what is the state now?".</li>
+            <li><strong>"use client":</strong> the menu reacts to clicks and downloads data in the browser, so its file starts with <code>"use client"</code>. The page around it is still built on the server.</li>
+            <li><strong>Cancelling:</strong> when another country is chosen, the download that is still running is cancelled. Without this, a slow file could arrive late and overwrite the newer choice.</li>
+          </ul></dd>
         <dt>Commit</dt><dd><code>Add data types, country data files and loader</code></dd>
       </dl>
     </div>
+  </section>
+
+  <section id="steps">
+    <p class="eyebrow">Next steps</p>
+    <h2>Steps 4 to 16</h2>
+    <p class="note">Each step gets its full seven-part guide when we reach it, and an entry in the step log when it is built and checked.</p>
     <div class="entry" id="s4">
       <p class="eyebrow">Step 4 · Front end 1</p>
       <h3>Calculation library with tests</h3>
@@ -343,7 +410,7 @@ npm run lint</pre>
       <dl>
         <dt>What</dt><dd>A server route that calls NASA&#x27;s daily feed with the key from an environment variable, caches the answer and returns recent detections.</dd>
         <dt>Why</dt><dd>Reaches the present, keeps the calendar updated and covers the newer satellites.</dd>
-        <dt>Done when</dt><dd>The route works on Vercel, the key is not visible in the browser, and the app still works when the route fails.</dd>
+        <dt>Done when</dt><dd>The route works locally with the key in <code>web/.env.local</code>, the key is not visible in the browser, and the app still works when the route fails. It is checked again on Vercel in step 16.</dd>
         <dt>Commit</dt><dd><code>Add live NASA feed route and current-year data</code></dd>
       </dl>
     </div>
@@ -369,11 +436,11 @@ npm run lint</pre>
     </div>
     <div class="entry" id="s16">
       <p class="eyebrow">Step 16 · Story, then everyone</p>
-      <h3>Submission</h3>
+      <h3>Deployment and submission</h3>
       <dl>
-        <dt>What</dt><dd>Project page text, 30-second video, public repository, final link tests, submit.</dd>
-        <dt>Why</dt><dd>Judges score mostly from the project page.</dd>
-        <dt>Done when</dt><dd>Submitted on the NASA site before Sunday 16:00.</dd>
+        <dt>What</dt><dd>Connect the GitHub repository to Vercel with root directory web. Then the project page text, 30-second video, public repository, final link tests, submit.</dd>
+        <dt>Why</dt><dd>Judges need a public link, and they score mostly from the project page.</dd>
+        <dt>Done when</dt><dd>The production link opens on a phone without a login, the live data route works there, and the project is submitted on the NASA site before Sunday 16:00.</dd>
         <dt>Commit</dt><dd><code>Final README and submission notes</code></dd>
       </dl>
     </div>
@@ -381,12 +448,14 @@ npm run lint</pre>
 
   <section id="deploy">
     <p class="eyebrow">Deployment</p>
-    <h2>Vercel from the first hour</h2>
+    <h2>Vercel, before submission</h2>
+    <p>The team decided on Saturday to build first and deploy at the end, as part of <a href="#s16">step 16</a>. Until then <code>npm run build</code> is our check: it is the same command Vercel runs.</p>
+    <div class="box"><p><strong>Do not leave it to the last hour.</strong> A first deploy often needs one fix, for example a setting or a secret that is missing. Plan it for Sunday morning, so there is time before the 16:00 deadline.</p></div>
     <ol>
       <li>The repository must be reachable by the Vercel account. On the free plan, connect it with the repository owner's account.</li>
       <li>In Vercel choose New Project, import the repository and set Root Directory to <code>web</code>. The framework is detected as Next.js.</li>
       <li>Secrets are set in Vercel under Settings, Environment Variables. Locally they go in <code>web/.env.local</code>, which is never committed.</li>
-      <li>Every push to <code>main</code> builds production. Every other branch gets its own preview link.</li>
+      <li>Every push to <code>main</code> builds production. Every other branch gets its own preview link. A preview link may ask for a Vercel login. The production link is public.</li>
       <li>Test each deploy in a private window and on a phone.</li>
     </ol>
   </section>

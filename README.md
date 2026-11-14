@@ -14,6 +14,7 @@ Open `index.html` in a browser for the project board: problem, solution, remaini
 .
 ├── README.md             this file
 ├── index.html            project board: problem, solution, checklist, roadmap, results
+├── development-plan.html the build plan, progress table and step log
 ├── requirements.txt      Python libraries for the pipeline
 ├── CLAUDE.md             rules for AI coding tools in this repo
 ├── assets/
@@ -29,7 +30,10 @@ Open `index.html` in a browser for the project board: problem, solution, remaini
 ├── data/                 NOT in git, created by the pipeline
 │   ├── raw/              NASA files, one per sensor, year and country
 │   └── out/              cells.json, report.json, problem.png, validation.png
-├── web/                  the web app (not created yet)
+├── web/                  the web app (Next.js), see "Run the web app"
+│   ├── public/data/      copy of data/out/ for the app, IN git, made by npm run copy-data
+│   ├── scripts/          copy-data.mjs
+│   └── src/              app/ pages, components/ drawing, hooks/, lib/ calculations and types
 └── venv/                 NOT in git, local Python environment
 ```
 
@@ -62,7 +66,24 @@ The prototype in `index.html` reads its own smaller files from `assets/proto/`. 
 
 The pipeline covers 16 European countries, so `cells.json` is about 17 MB. That is too large to load in one go. The same rows are also written per country to `data/out/cells/{Country}.json` (Germany is about 1 MB). The web app should load only the country it needs.
 
-Because `data/` is not in git, the web app needs its own copy. Once `web/` exists, copy `data/out/cells/` to `web/public/data/cells/` and commit that copy, or the deployed site will have no data.
+Because `data/` is not in git, the web app has its own copy in `web/public/data/`, which is in git. After rerunning the pipeline, refresh that copy and commit it, or the deployed site keeps the old data:
+
+```bash
+cd web
+npm run copy-data
+```
+
+The row format is described for the app in `web/src/lib/types.ts`. If the pipeline changes the format, change that file and `web/scripts/copy-data.mjs` too.
+
+## Run the web app
+
+```bash
+cd web
+npm install        # once, and again after pulling changes to package.json
+npm run dev        # open http://localhost:3000
+```
+
+`npm run build` makes the production build and `npm run lint` checks the code. Both must pass before a commit. What was built in each step, and why, is in the step log in `development-plan.html`.
 
 ## Current result
 
