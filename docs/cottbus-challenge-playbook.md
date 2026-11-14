@@ -1,5 +1,7 @@
 # Cottbus Challenge Playbook
 
+> **Superseded.** This was the first comparison, written before we knew the team's skills. We chose the MODIS and VIIRS fire calendar. The Mars map and the Jukebox are no longer runners-up. See `space-apps-winner-study.md` and `index.html` in the repo root.
+
 NASA Space Apps 2026 · Cottbus
 
 Three challenges no Cottbus team has claimed, each broken down far enough to choose one and start building. The recommendation is the MODIS and VIIRS fire calendar.

@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fire Calendar · Development Plan</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --fg:#161b22; --muted:#5b6573; --line:#dde2ea; --fire:#b4500a; --ok:#1a7f4b; --chip:#eceff4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1319; --card:#171d26; --fg:#e8ecf2; --muted:#9aa5b5; --line:#2a3340; --fire:#f2a15a; --ok:#5fd093; --chip:#202834; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:32px 16px 72px; }
+  h1 { font-size:1.9rem; margin:4px 0 8px; line-height:1.2; }
+  h2 { font-size:1.35rem; margin:0 0 8px; line-height:1.25; }
+  h3 { font-size:1rem; margin:22px 0 6px; }
+  p { margin:8px 0 0; max-width:68ch; }
+  ul, ol { margin:8px 0 0; padding-left:22px; max-width:68ch; }
+  li { margin-top:4px; }
+  a { color:var(--fire); }
+  code { background:var(--chip); padding:1px 5px; border-radius:4px; font-size:.9em; }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:12px 14px; overflow-x:auto; font-size:.85rem; margin:10px 0 0; }
+  .eyebrow { font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0; }
+  nav { display:flex; flex-wrap:wrap; gap:6px 18px; padding:10px 0; margin-top:20px; border-block:1px solid var(--line); font-size:.9rem; position:sticky; top:0; background:var(--bg); }
+  nav a { color:var(--muted); text-decoration:none; font-weight:500; }
+  section { margin-top:48px; scroll-margin-top:56px; }
+  .lede { font-size:1.1rem; }
+  .bar { height:10px; background:var(--chip); border-radius:5px; overflow:hidden; margin-top:12px; }
+  .bar span { display:block; height:100%; width:0; background:var(--ok); transition:width .2s; }
+  .count { color:var(--muted); font-size:.9rem; margin-top:6px; }
+  .tasks { list-style:none; padding:0; max-width:none; }
+  .tasks li { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--line); margin:0; }
+  .tasks input { margin-top:5px; width:16px; height:16px; accent-color:var(--ok); flex:none; }
+  .tasks label { flex:1; min-width:0; }
+  .tasks input:checked + label { color:var(--muted); text-decoration:line-through; }
+  .who { font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; background:var(--chip); color:var(--muted); padding:2px 7px; border-radius:10px; flex:none; margin-top:3px; }
+  .scroll { overflow-x:auto; margin-top:10px; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  td.t { white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .box { background:var(--card); border:1px solid var(--line); border-top:3px solid var(--fire); border-radius:8px; padding:16px 18px; margin-top:16px; }
+  .box p:first-child { margin-top:0; }
+  .note { color:var(--muted); font-size:.9rem; }
+  .imgs { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-top:14px; }
+  .imgs img { width:100%; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button { font:inherit; padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); cursor:pointer; margin-top:12px; }
+
+  .lane { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .lane-title { font-size:.78rem; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; max-width:none; }
+  .flow { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+  .node { flex:1 1 150px; min-width:0; border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:var(--bg); }
+  .node strong { display:block; font-size:.92rem; }
+  .node span { display:block; font-size:.84rem; color:var(--muted); margin-top:2px; }
+  .node.out { border-color:var(--fire); }
+  .arrow { align-self:center; color:var(--muted); font-size:1.2rem; }
+  .handoff { text-align:center; color:var(--muted); font-size:.88rem; margin-top:12px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin-top:14px; }
+  .controls select { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); }
+  .seg button { margin:0; border-radius:0; }
+  .seg button:first-child { border-radius:6px 0 0 6px; }
+  .seg button:last-child { border-radius:0 6px 6px 0; border-left:0; }
+  .seg button[aria-pressed="true"] { background:var(--fire); border-color:var(--fire); color:var(--bg); font-weight:600; }
+  table.cal { border-collapse:separate; border-spacing:2px; font-size:.72rem; font-variant-numeric:tabular-nums; }
+  table.cal th { padding:2px 4px; border:0; text-align:center; text-transform:none; letter-spacing:0; }
+  table.cal td { padding:0; border:0; width:44px; height:24px; text-align:center; border-radius:3px; cursor:pointer; background:var(--chip); color:var(--muted); }
+  table.cal td.est { outline:1px dashed var(--muted); outline-offset:-1px; }
+  table.cal td.sel { outline:2px solid var(--fg); outline-offset:-2px; }
+  table.cal td.tot { cursor:default; background:none; color:var(--fg); font-weight:600; text-align:right; padding-left:10px; width:auto; }
+  table.cal tr.split td, table.cal tr.split th { border-top:2px solid var(--fire); }
+
+  .pmap { height:340px; margin-top:14px; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--chip); }
+  .st { display:inline-block; font-size:.75rem; padding:2px 8px; border-radius:10px; white-space:nowrap; background:var(--chip); color:var(--muted); }
+  .st.done { background:var(--ok); color:var(--bg); }
+  .st.part { border:1px solid var(--ok); color:var(--ok); background:none; }
+  .st.gap { border:1px solid var(--fire); color:var(--fire); background:none; }
+
+  .tag { font-size:.65rem; letter-spacing:.05em; text-transform:uppercase; border:1px solid var(--ok); color:var(--ok); padding:0 5px; border-radius:8px; vertical-align:middle; font-weight:600; }
+  .seg button[aria-pressed="true"] .tag { border-color:var(--bg); color:var(--bg); }
+  .check { display:inline-flex; gap:8px; align-items:center; margin-top:8px; font-size:.95rem; }
+  #pFind ul { margin:6px 0 0; }
+  #pPtsTable { font-size:.85rem; font-variant-numeric:tabular-nums; }
+
+  .entry { border-top:1px solid var(--line); padding:18px 0; scroll-margin-top:56px; }
+  .entry h3 { margin:4px 0 0; font-size:1.1rem; }
+  dl { margin:10px 0 0; display:grid; grid-template-columns:7.5em minmax(0,1fr); gap:6px 16px; font-size:.95rem; }
+  dt { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); padding-top:4px; }
+  dd { margin:0; min-width:0; }
+  @media (max-width:520px) { dl { grid-template-columns:1fr; gap:0; } dt { padding-top:10px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">NASA Space Apps 2026 · Cottbus · Harmonization of MODIS and VIIRS Hot Spots</p>
+  <h1>Fire Calendar · Development Plan</h1>
+  <p class="lede">How we build the web app on Vercel, one step at a time: build, check, understand, then commit.</p>
+
+  <nav>
+    <a href="index.html">← Project board</a>
+    <a href="#progress">Progress</a>
+    <a href="#stack">Technology</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#rules">How we work</a>
+    <a href="#step1">Step 1 in detail</a>
+    <a href="#steps">All steps</a>
+    <a href="#deploy">Deployment</a>
+  </nav>
+
+  <section id="progress">
+    <p class="eyebrow">Progress</p>
+    <h2>Where we are</h2>
+    <p class="note">Status moves through: Not started, In progress, Built, Checked, Committed. This table is updated in the file as steps are finished.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Step</th><th>Task</th><th>Who</th><th>Status</th></tr></thead>
+      <tbody><tr><td class="t">0</td><td>Data pipeline and prototype</td><td>AI, Data</td><td><span class="st part">Built, not committed</span></td></tr><tr><td class="t">1</td><td><a href="#step1">Scaffold the Next.js app in web/</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">2</td><td><a href="#s2">Deploy to Vercel</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">3</td><td><a href="#s3">Data contract, data files and loader</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">4</td><td><a href="#s4">Calculation library with tests</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">5</td><td><a href="#s5">Country menu and calendar</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">6</td><td><a href="#s6">Raw / corrected switch and date range</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">7</td><td><a href="#s7">Map with fire squares</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">8</td><td><a href="#s8">Region selection</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">9</td><td><a href="#s9">Findings and comparison panel</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">10</td><td><a href="#s10">Trend, extent and frequency views</a></td><td>Front end 1</td><td><span class="st">Not started</span></td></tr><tr><td class="t">11</td><td><a href="#s11">Downloads and shareable link</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">12</td><td><a href="#s12">Method page</a></td><td>Front end 2</td><td><span class="st">Not started</span></td></tr><tr><td class="t">13</td><td><a href="#s13">Live data route</a></td><td>Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">14</td><td><a href="#s14">Pipeline upgrades</a></td><td>AI and Data</td><td><span class="st">Not started</span></td></tr><tr><td class="t">15</td><td><a href="#s15">Polish and accessibility</a></td><td>Front end</td><td><span class="st">Not started</span></td></tr><tr><td class="t">16</td><td><a href="#s16">Submission</a></td><td>Story, then everyone</td><td><span class="st">Not started</span></td></tr></tbody>
+    </table></div>
+  </section>
+
+  <section id="stack">
+    <p class="eyebrow">Technology</p>
+    <h2>What we use and why</h2>
+    <p>Everything here is free for a hackathon project.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Layer</th><th>Choice</th><th>Why</th></tr></thead>
+      <tbody><tr><td>Framework</td><td>Next.js (App Router), React, TypeScript strict</td><td>Vercel&#x27;s native framework, so deploys need no configuration. Pages, API routes and builds in one tool.</td></tr><tr><td>Styling</td><td>Tailwind CSS</td><td>Fast, consistent styling without a stylesheet per component.</td></tr><tr><td>Charts</td><td>Apache ECharts</td><td>Heatmap and line charts, and it exports a chart as an image, which the challenge asks for.</td></tr><tr><td>Map</td><td>MapLibre GL JS with OpenFreeMap tiles</td><td>No token or account needed.</td></tr><tr><td>Drawing</td><td>terra-draw</td><td>Polygon and rectangle drawing made for MapLibre.</td></tr><tr><td>Geometry</td><td>Turf.js, one function</td><td>Decides which map squares lie inside a drawn region.</td></tr><tr><td>Data storage</td><td>Static JSON files, one per country</td><td>The corrected record is small and read-only. No database needed.</td></tr><tr><td>Backend</td><td>One Next.js route, /api/recent</td><td>Only to keep the NASA key secret when calling the daily feed.</td></tr><tr><td>ML and pipeline</td><td>Python, pandas, scikit-learn, run offline</td><td>Training happens once on a laptop. The app only reads results, so nothing can fail at demo time.</td></tr><tr><td>NASA data</td><td>FIRMS country files and FIRMS daily feed</td><td>The dataset the challenge names. The feed needs a free key.</td></tr><tr><td>Tests</td><td>Vitest</td><td>Fast unit tests for the calculation functions.</td></tr><tr><td>Hosting</td><td>Vercel Hobby plan, root directory web</td><td>Public link, a preview build per branch, production build on main.</td></tr></tbody>
+    </table></div>
+    <p><strong>Not used, on purpose:</strong> a database, user accounts, a model server, a state library. Nothing is private and the data is read-only. Each of these would cost hours without adding anything a judge can see.</p>
+  </section>
+
+  <section id="architecture">
+    <p class="eyebrow">Architecture</p>
+    <h2>How the pieces fit</h2>
+    <div class="lane">
+      <p class="lane-title">Offline · on a laptop · Python</p>
+      <div class="flow">
+        <div class="node"><strong>NASA FIRMS files</strong><span>Fire records from both satellites</span></div><div class="arrow">→</div>
+        <div class="node"><strong>01_download.py</strong><span>Saves them locally</span></div><div class="arrow">→</div>
+        <div class="node"><strong>02_harmonize.py</strong><span>Clean, grid, correct, check</span></div><div class="arrow">→</div>
+        <div class="node out"><strong>One file per country</strong><span>Plus report.json with the accuracy</span></div>
+      </div>
+    </div>
+    <div class="handoff">↓ &nbsp; copied into <code>web/public/data/</code> &nbsp; ↓</div>
+    <div class="lane">
+      <p class="lane-title">Online · on Vercel · Next.js</p>
+      <div class="flow">
+        <div class="node out"><strong>Country file</strong><span>Loaded when a country is chosen</span></div><div class="arrow">→</div>
+        <div class="node"><strong>lib/</strong><span>Calculations as plain functions, unit tested</span></div><div class="arrow">→</div>
+        <div class="node"><strong>components/</strong><span>Calendar, map, panels, downloads</span></div><div class="arrow">→</div>
+        <div class="node"><strong>Browser</strong><span>The view is stored in the page address</span></div>
+      </div>
+    </div>
+    <div class="lane">
+      <p class="lane-title">Live data · the only server code</p>
+      <div class="flow">
+        <div class="node"><strong>Browser</strong><span>Asks for the last days</span></div><div class="arrow">→</div>
+        <div class="node"><strong>/api/recent</strong><span>Holds the NASA key, caches answers</span></div><div class="arrow">→</div>
+        <div class="node"><strong>NASA daily feed</strong><span>Newest detections</span></div>
+      </div>
+    </div>
+    <h3>Three rules that keep it clean</h3>
+    <ul>
+      <li>Calculations live in <code>web/src/lib/</code> as plain functions with no React in them.</li>
+      <li>Components only draw and handle clicks.</li>
+      <li>The NASA key is read only inside the server route and is never sent to the browser.</li>
+    </ul>
+  </section>
+
+  <section id="rules">
+    <p class="eyebrow">How we work</p>
+    <h2>One step at a time</h2>
+    <ol>
+      <li><strong>Build</strong> the current step only.</li>
+      <li><strong>Check</strong> it with the validation listed for that step.</li>
+      <li><strong>Understand</strong> it. Everyone on the team can explain what it does.</li>
+      <li><strong>Commit</strong> when the team says so, with the suggested message.</li>
+      <li>Only then start the next step.</li>
+    </ol>
+    <p>Steps 1 to 3 go in order. After step 3 the work splits: the two front-end people share steps 4 to 12, the data person takes step 13, the AI person step 14, and the story person starts step 16 right away.</p>
+  </section>
+
+  <section id="step1">
+    <p class="eyebrow">Current step</p>
+    <h2>Step 1: Scaffold the Next.js app in web/</h2>
+    <h3>1. What are we building?</h3>
+    <p>An empty Next.js application in a new <code>web/</code> folder, with TypeScript in strict mode, Tailwind and ESLint. No features yet.</p>
+    <h3>2. Why are we building it?</h3>
+    <p>Every later step lives inside it. Doing it alone first means that when something breaks later, we know the base was sound.</p>
+    <h3>3. How will we build it?</h3>
+    <p>From the repo root:</p>
+    <pre>npx create-next-app@latest web --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm</pre>
+    <p>If it asks further questions: Turbopack yes, React Compiler no, anything else no. Then:</p>
+    <pre>cd web
+npm run dev        # open http://localhost:3000
+npm run build
+npm run lint</pre>
+    <h3>4. Expected outcome</h3>
+    <ul>
+      <li>A <code>web/</code> folder with <code>src/app/page.tsx</code>, <code>src/app/layout.tsx</code>, <code>package.json</code> and <code>tsconfig.json</code>.</li>
+      <li>The Next.js start page in the browser.</li>
+    </ul>
+    <h3>5. Validation</h3>
+    <ul>
+      <li><code>npm run dev</code> serves the start page with no errors.</li>
+      <li><code>npm run build</code> ends with a success summary.</li>
+      <li><code>npm run lint</code> reports no problems.</li>
+      <li><code>web/tsconfig.json</code> contains <code>"strict": true</code>.</li>
+      <li>There is no <code>web/.git</code> folder. If there is, delete it.</li>
+      <li>From the repo root, <code>git status</code> shows <code>web/</code> as new and does not list <code>web/node_modules</code>.</li>
+    </ul>
+    <h3>6. Understanding</h3>
+    <ul>
+      <li><strong>Why a web/ subfolder:</strong> the repo holds two separate things, the Python pipeline and the web app. Vercel is told to build only <code>web/</code>.</li>
+      <li><strong>App Router:</strong> each folder under <code>src/app/</code> is a page address. <code>page.tsx</code> is the page, <code>layout.tsx</code> wraps all pages.</li>
+      <li><strong>Server and client components:</strong> by default a component runs on the server and sends HTML. Anything interactive needs <code>"use client"</code> at the top of its file.</li>
+      <li><strong>Strict TypeScript:</strong> the compiler refuses values that might be missing. It prevents the "undefined" errors that break demos.</li>
+      <li><strong>npm run build:</strong> this is what Vercel runs. If it passes locally, the deploy almost always passes too.</li>
+    </ul>
+    <h3>7. Git commit</h3>
+    <ul>
+      <li>First the work that already exists: <code>Add data pipeline, project board and docs</code>.</li>
+      <li>Then the scaffold: <code>Add Next.js app scaffold in web/</code>, everything in <code>web/</code> except <code>node_modules</code> and <code>.next</code>.</li>
+    </ul>
+  </section>
+
+  <section id="steps">
+    <p class="eyebrow">All steps</p>
+    <h2>Steps 2 to 16</h2>
+    <p class="note">Each step gets its full seven-part guide, like Step 1 above, when we reach it.</p>
+    <div class="entry" id="s2">
+      <p class="eyebrow">Step 2 · Front end</p>
+      <h3>Deploy to Vercel</h3>
+      <dl>
+        <dt>What</dt><dd>Connect the GitHub repository to Vercel with root directory web.</dd>
+        <dt>Why</dt><dd>The public link exists from the first hour and every push is tested for real.</dd>
+        <dt>Done when</dt><dd>The production link opens on a phone without a login. A branch gets its own preview link.</dd>
+        <dt>Commit</dt><dd><code>Replace start page with project shell</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s3">
+      <p class="eyebrow">Step 3 · Front end</p>
+      <h3>Data contract, data files and loader</h3>
+      <dl>
+        <dt>What</dt><dd>TypeScript types for a data row, a script that copies the pipeline output into the app, and a loader with loading and error states.</dd>
+        <dt>Why</dt><dd>This is the contract between the pipeline and the app.</dd>
+        <dt>Done when</dt><dd>Choosing a country shows its row count. A wrong file name shows a readable error.</dd>
+        <dt>Commit</dt><dd><code>Add data types, country data files and loader</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s4">
+      <p class="eyebrow">Step 4 · Front end 1</p>
+      <h3>Calculation library with tests</h3>
+      <dl>
+        <dt>What</dt><dd>Plain functions: sum rows into a year-by-month table, rank a month, median, main season, yearly totals, trend test.</dd>
+        <dt>Why</dt><dd>Every number on screen comes from here, so it must be right and tested.</dd>
+        <dt>Done when</dt><dd>npm test passes, including a check against known pipeline totals.</dd>
+        <dt>Commit</dt><dd><code>Add calculation library with unit tests</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s5">
+      <p class="eyebrow">Step 5 · Front end 1</p>
+      <h3>Country menu and calendar</h3>
+      <dl>
+        <dt>What</dt><dd>The country menu and the year-by-month heatmap.</dd>
+        <dt>Why</dt><dd>The calendar is the product the challenge names.</dd>
+        <dt>Done when</dt><dd>The Germany calendar matches the prototype&#x27;s numbers.</dd>
+        <dt>Commit</dt><dd><code>Add country menu and burning calendar</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s6">
+      <p class="eyebrow">Step 6 · Front end 1</p>
+      <h3>Raw / corrected switch and date range</h3>
+      <dl>
+        <dt>What</dt><dd>The switch between the raw and the corrected record, estimated years marked, and start and end year selectors.</dd>
+        <dt>Why</dt><dd>The switch makes the harmonization visible. The date range is required by the challenge.</dd>
+        <dt>Done when</dt><dd>Year totals jump at 2012 in raw mode and not in corrected mode.</dd>
+        <dt>Commit</dt><dd><code>Add record switch and date range</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s7">
+      <p class="eyebrow">Step 7 · Front end 2</p>
+      <h3>Map with fire squares</h3>
+      <dl>
+        <dt>What</dt><dd>A map coloured by activity per square, updating when a month is clicked.</dd>
+        <dt>Why</dt><dd>Shows where the fire was, not only when.</dd>
+        <dt>Done when</dt><dd>October 2017 in Portugal shows the known cluster.</dd>
+        <dt>Commit</dt><dd><code>Add map with activity squares</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s8">
+      <p class="eyebrow">Step 8 · Front end 2</p>
+      <h3>Region selection</h3>
+      <dl>
+        <dt>What</dt><dd>Draw a polygon or rectangle, or type a latitude and longitude box. The calendar recalculates for the squares inside.</dd>
+        <dt>Why</dt><dd>A selected area of interest is the central interaction in the challenge.</dd>
+        <dt>Done when</dt><dd>A box around Brandenburg gives the same totals as the prototype&#x27;s Brandenburg region.</dd>
+        <dt>Commit</dt><dd><code>Add region selection by drawing and coordinates</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s9">
+      <p class="eyebrow">Step 9 · Front end 1</p>
+      <h3>Findings and comparison panel</h3>
+      <dl>
+        <dt>What</dt><dd>Main season, worst year, latest year against a typical year, the selected month against its median and the multi-year average.</dd>
+        <dt>Why</dt><dd>Turns the picture into statements a fire service can act on.</dd>
+        <dt>Done when</dt><dd>The statements match hand calculations for two regions.</dd>
+        <dt>Commit</dt><dd><code>Add findings and month comparison panel</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s10">
+      <p class="eyebrow">Step 10 · Front end 1</p>
+      <h3>Trend, extent and frequency views</h3>
+      <dl>
+        <dt>What</dt><dd>Yearly totals with a trend line and significance, squares burning per month, and years each square burned.</dd>
+        <dt>Why</dt><dd>The challenge names trends, and a trend is only fair on the corrected record.</dd>
+        <dt>Done when</dt><dd>The raw record shows a false rise that the corrected record does not.</dd>
+        <dt>Commit</dt><dd><code>Add trend, extent and frequency views</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s11">
+      <p class="eyebrow">Step 11 · Front end 2</p>
+      <h3>Downloads and shareable link</h3>
+      <dl>
+        <dt>What</dt><dd>CSV of the current table, images of the calendar and charts, and the full view stored in the page address.</dd>
+        <dt>Why</dt><dd>The challenge asks for downloadable analytics and visualizations, and for monitoring regions.</dd>
+        <dt>Done when</dt><dd>A copied link reopens the same view in a private window.</dd>
+        <dt>Commit</dt><dd><code>Add downloads and shareable view links</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s12">
+      <p class="eyebrow">Step 12 · Front end 2</p>
+      <h3>Method page</h3>
+      <dl>
+        <dt>What</dt><dd>A page with the problem chart, the validation chart, the accuracy numbers, the limits and the data credits.</dd>
+        <dt>Why</dt><dd>The evidence for the Validity score, where judges can see it.</dd>
+        <dt>Done when</dt><dd>Every number on the page comes from report.json, none typed by hand.</dd>
+        <dt>Commit</dt><dd><code>Add method and validation page</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s13">
+      <p class="eyebrow">Step 13 · Data</p>
+      <h3>Live data route</h3>
+      <dl>
+        <dt>What</dt><dd>A server route that calls NASA&#x27;s daily feed with the key from an environment variable, caches the answer and returns recent detections.</dd>
+        <dt>Why</dt><dd>Reaches the present, keeps the calendar updated and covers the newer satellites.</dd>
+        <dt>Done when</dt><dd>The route works on Vercel, the key is not visible in the browser, and the app still works when the route fails.</dd>
+        <dt>Commit</dt><dd><code>Add live NASA feed route and current-year data</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s14">
+      <p class="eyebrow">Step 14 · AI and Data</p>
+      <h3>Pipeline upgrades</h3>
+      <dl>
+        <dt>What</dt><dd>A model that beats the simple ratio, low and high estimates, the time-of-day test, more continents, the official statistics check.</dd>
+        <dt>Why</dt><dd>This is what sets us apart from other teams on the same challenge.</dd>
+        <dt>Done when</dt><dd>report.json shows the comparison and new data files are copied into the app.</dd>
+        <dt>Commit</dt><dd><code>One commit per upgrade</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s15">
+      <p class="eyebrow">Step 15 · Front end</p>
+      <h3>Polish and accessibility</h3>
+      <dl>
+        <dt>What</dt><dd>Phone layout, empty and error states, keyboard use, colour-blindness check, loading speed.</dd>
+        <dt>Why</dt><dd>Judges open the link once, often on a phone.</dd>
+        <dt>Done when</dt><dd>The app works on a phone, on mobile data and in a private window.</dd>
+        <dt>Commit</dt><dd><code>Polish layout, states and accessibility</code></dd>
+      </dl>
+    </div>
+    <div class="entry" id="s16">
+      <p class="eyebrow">Step 16 · Story, then everyone</p>
+      <h3>Submission</h3>
+      <dl>
+        <dt>What</dt><dd>Project page text, 30-second video, public repository, final link tests, submit.</dd>
+        <dt>Why</dt><dd>Judges score mostly from the project page.</dd>
+        <dt>Done when</dt><dd>Submitted on the NASA site before Sunday 16:00.</dd>
+        <dt>Commit</dt><dd><code>Final README and submission notes</code></dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="deploy">
+    <p class="eyebrow">Deployment</p>
+    <h2>Vercel from the first hour</h2>
+    <ol>
+      <li>The repository must be reachable by the Vercel account. On the free plan, connect it with the repository owner's account.</li>
+      <li>In Vercel choose New Project, import the repository and set Root Directory to <code>web</code>. The framework is detected as Next.js.</li>
+      <li>Secrets are set in Vercel under Settings, Environment Variables. Locally they go in <code>web/.env.local</code>, which is never committed.</li>
+      <li>Every push to <code>main</code> builds production. Every other branch gets its own preview link.</li>
+      <li>Test each deploy in a private window and on a phone.</li>
+    </ol>
+  </section>
+</div>
+</body>
+</html>

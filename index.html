@@ -1,0 +1,658 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fire Calendar · Project Board</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --fg:#161b22; --muted:#5b6573; --line:#dde2ea; --fire:#b4500a; --ok:#1a7f4b; --chip:#eceff4; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#0f1319; --card:#171d26; --fg:#e8ecf2; --muted:#9aa5b5; --line:#2a3340; --fire:#f2a15a; --ok:#5fd093; --chip:#202834; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif; }
+  .wrap { max-width:900px; margin:0 auto; padding:32px 16px 72px; }
+  h1 { font-size:1.9rem; margin:4px 0 8px; line-height:1.2; }
+  h2 { font-size:1.35rem; margin:0 0 8px; line-height:1.25; }
+  h3 { font-size:1rem; margin:22px 0 6px; }
+  p { margin:8px 0 0; max-width:68ch; }
+  ul, ol { margin:8px 0 0; padding-left:22px; max-width:68ch; }
+  li { margin-top:4px; }
+  a { color:var(--fire); }
+  code { background:var(--chip); padding:1px 5px; border-radius:4px; font-size:.9em; }
+  pre { background:var(--card); border:1px solid var(--line); border-radius:6px; padding:12px 14px; overflow-x:auto; font-size:.85rem; margin:10px 0 0; }
+  .eyebrow { font-size:.75rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0; }
+  nav { display:flex; flex-wrap:wrap; gap:6px 18px; padding:10px 0; margin-top:20px; border-block:1px solid var(--line); font-size:.9rem; position:sticky; top:0; background:var(--bg); }
+  nav a { color:var(--muted); text-decoration:none; font-weight:500; }
+  section { margin-top:48px; scroll-margin-top:56px; }
+  .lede { font-size:1.1rem; }
+  .bar { height:10px; background:var(--chip); border-radius:5px; overflow:hidden; margin-top:12px; }
+  .bar span { display:block; height:100%; width:0; background:var(--ok); transition:width .2s; }
+  .count { color:var(--muted); font-size:.9rem; margin-top:6px; }
+  .tasks { list-style:none; padding:0; max-width:none; }
+  .tasks li { display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px solid var(--line); margin:0; }
+  .tasks input { margin-top:5px; width:16px; height:16px; accent-color:var(--ok); flex:none; }
+  .tasks label { flex:1; min-width:0; }
+  .tasks input:checked + label { color:var(--muted); text-decoration:line-through; }
+  .who { font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; background:var(--chip); color:var(--muted); padding:2px 7px; border-radius:10px; flex:none; margin-top:3px; }
+  .scroll { overflow-x:auto; margin-top:10px; }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; }
+  th, td { text-align:left; padding:8px 12px 8px 0; border-bottom:1px solid var(--line); vertical-align:top; }
+  th { font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; }
+  td.t { white-space:nowrap; font-variant-numeric:tabular-nums; }
+  .box { background:var(--card); border:1px solid var(--line); border-top:3px solid var(--fire); border-radius:8px; padding:16px 18px; margin-top:16px; }
+  .box p:first-child { margin-top:0; }
+  .note { color:var(--muted); font-size:.9rem; }
+  .imgs { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:16px; margin-top:14px; }
+  .imgs img { width:100%; border:1px solid var(--line); border-radius:6px; background:#fff; }
+  button { font:inherit; padding:6px 12px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); cursor:pointer; margin-top:12px; }
+
+  .lane { background:var(--card); border:1px solid var(--line); border-radius:8px; padding:14px 16px; margin-top:16px; }
+  .lane-title { font-size:.78rem; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; max-width:none; }
+  .flow { display:flex; flex-wrap:wrap; gap:8px; align-items:stretch; }
+  .node { flex:1 1 150px; min-width:0; border:1px solid var(--line); border-radius:6px; padding:10px 12px; background:var(--bg); }
+  .node strong { display:block; font-size:.92rem; }
+  .node span { display:block; font-size:.84rem; color:var(--muted); margin-top:2px; }
+  .node.out { border-color:var(--fire); }
+  .arrow { align-self:center; color:var(--muted); font-size:1.2rem; }
+  .handoff { text-align:center; color:var(--muted); font-size:.88rem; margin-top:12px; }
+  .controls { display:flex; flex-wrap:wrap; gap:10px 14px; align-items:center; margin-top:14px; }
+  .controls select { font:inherit; padding:6px 8px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--fg); }
+  .seg button { margin:0; border-radius:0; }
+  .seg button:first-child { border-radius:6px 0 0 6px; }
+  .seg button:last-child { border-radius:0 6px 6px 0; border-left:0; }
+  .seg button[aria-pressed="true"] { background:var(--fire); border-color:var(--fire); color:var(--bg); font-weight:600; }
+  table.cal { border-collapse:separate; border-spacing:2px; font-size:.72rem; font-variant-numeric:tabular-nums; }
+  table.cal th { padding:2px 4px; border:0; text-align:center; text-transform:none; letter-spacing:0; }
+  table.cal td { padding:0; border:0; width:44px; height:24px; text-align:center; border-radius:3px; cursor:pointer; background:var(--chip); color:var(--muted); }
+  table.cal td.est { outline:1px dashed var(--muted); outline-offset:-1px; }
+  table.cal td.sel { outline:2px solid var(--fg); outline-offset:-2px; }
+  table.cal td.tot { cursor:default; background:none; color:var(--fg); font-weight:600; text-align:right; padding-left:10px; width:auto; }
+  table.cal tr.split td, table.cal tr.split th { border-top:2px solid var(--fire); }
+
+  .pmap { height:340px; margin-top:14px; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--chip); }
+  .st { display:inline-block; font-size:.75rem; padding:2px 8px; border-radius:10px; white-space:nowrap; background:var(--chip); color:var(--muted); }
+  .st.done { background:var(--ok); color:var(--bg); }
+  .st.part { border:1px solid var(--ok); color:var(--ok); background:none; }
+  .st.gap { border:1px solid var(--fire); color:var(--fire); background:none; }
+
+  .tag { font-size:.65rem; letter-spacing:.05em; text-transform:uppercase; border:1px solid var(--ok); color:var(--ok); padding:0 5px; border-radius:8px; vertical-align:middle; font-weight:600; }
+  .seg button[aria-pressed="true"] .tag { border-color:var(--bg); color:var(--bg); }
+  .check { display:inline-flex; gap:8px; align-items:center; margin-top:8px; font-size:.95rem; }
+  #pFind ul { margin:6px 0 0; }
+  #pPtsTable { font-size:.85rem; font-variant-numeric:tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">NASA Space Apps 2026 · Cottbus · Harmonization of MODIS and VIIRS Hot Spots</p>
+  <h1>Fire Calendar · Project Board</h1>
+  <p class="lede">25 years of fire history as one consistent record, with a clear signal when a region turns abnormal.</p>
+
+  <nav>
+    <a href="development-plan.html"><strong>Development plan →</strong></a>
+    <a href="#problem">Problem</a>
+    <a href="#solution">Solution</a>
+    <a href="#use">How people use it</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#prototype">Prototype</a>
+    <a href="#coverage">Challenge coverage</a>
+    <a href="#steps">Steps remaining</a>
+    <a href="#deeper">Going deeper</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#run">How to run</a>
+    <a href="#results">Results so far</a>
+  </nav>
+
+  <section id="problem">
+    <p class="eyebrow">Problem statement</p>
+    <h2>Nobody can say whether this month's fires are normal</h2>
+    <p>NASA satellites have spotted fires from space by their heat since 2000. But the record comes from two generations of sensor.</p>
+    <ul>
+      <li><strong>MODIS</strong>, the older one, has blurry vision (1 km). It misses small fires and is close to retirement.</li>
+      <li><strong>VIIRS</strong>, the newer one, has sharp vision (375 m). It has been flying since 2012 and sees about three times as many fire detections.</li>
+    </ul>
+    <p>So the numbers jump in 2012 even when nothing changed on the ground. It is like counting birds by eye for years and then switching to binoculars. Fire services, forest managers and scientists cannot compare the old years with the new ones.</p>
+  </section>
+
+  <section id="solution">
+    <p class="eyebrow">Our solution, in plain words</p>
+    <h2>One fair record, shown as a calendar</h2>
+    <ol>
+      <li><strong>Collect.</strong> We download NASA's free fire records for both sensors.</li>
+      <li><strong>Learn the difference.</strong> For the years when both sensors watched the same fires, a model learns how the older one's counts relate to the newer one's.</li>
+      <li><strong>Correct the past.</strong> We apply that to the years before 2012, so all 25 years are on one scale.</li>
+      <li><strong>Prove it.</strong> We hide the last four years from the model and check how well it predicts them.</li>
+      <li><strong>Show it.</strong> A website draws a calendar for any region: years down the side, months across the top, darker means more fire.</li>
+      <li><strong>Flag it.</strong> The site says how the latest month compares with history.</li>
+    </ol>
+  </section>
+
+  <section id="use">
+    <p class="eyebrow">How a user will use it</p>
+    <h2>Five steps, no training needed</h2>
+    <ol>
+      <li>Open the website. It starts on Brandenburg with a calendar already showing.</li>
+      <li>Draw your own area on the map, pick a preset region, or type a latitude and longitude box.</li>
+      <li>Read the calendar. You see the fire season, the worst years and how this month compares with the past.</li>
+      <li>Flip the switch between the raw record and the corrected record to see what the correction changes.</li>
+      <li>Download the numbers as a spreadsheet file.</li>
+    </ol>
+    <p class="note">Who it is for: fire services, forest managers, civil protection and researchers.</p>
+  </section>
+
+
+  <section id="architecture">
+    <p class="eyebrow">Architecture</p>
+    <h2>How the project is built</h2>
+    <p>The project has two halves. The first half runs on our own laptop and prepares the data. The second half is the website that people use. One file connects them.</p>
+
+    <div class="lane">
+      <p class="lane-title">Half 1 · Data pipeline · runs on our laptop, once · Python · AI engineer</p>
+      <div class="flow">
+        <div class="node"><strong>NASA FIRMS</strong><span>Free fire records from both satellites</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><strong>01_download.py</strong><span>Saves the files into <code>data/raw/</code></span></div>
+        <div class="arrow">→</div>
+        <div class="node"><strong>02_harmonize.py</strong><span>Cleans, groups into map squares, trains the model, checks it</span></div>
+        <div class="arrow">→</div>
+        <div class="node out"><strong>cells.json</strong><span>The corrected record, one small file</span></div>
+      </div>
+    </div>
+    <div class="handoff">↓ &nbsp; <code>cells.json</code> is copied into the website &nbsp; ↓</div>
+    <div class="lane">
+      <p class="lane-title">Half 2 · Web app · runs in the user's browser · React · software engineer</p>
+      <div class="flow">
+        <div class="node out"><strong>cells.json</strong><span>Loaded once when the page opens</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><strong>Map</strong><span>User draws or picks a region</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><strong>Filter and add up</strong><span>Keeps the squares inside the region, sums per month</span></div>
+        <div class="arrow">→</div>
+        <div class="node"><strong>Calendar and insights</strong><span>Heatmap, comparison with history, download</span></div>
+      </div>
+    </div>
+
+    <h3>What happens inside 02_harmonize.py</h3>
+    <ol>
+      <li><strong>Clean.</strong> Keep vegetation fires only and drop low-quality detections. Factories and steelworks also show up as heat, so they are removed.</li>
+      <li><strong>Group.</strong> Lay a grid of squares (about 25 km) over the map and count detections per square and month, for each satellite.</li>
+      <li><strong>Learn.</strong> For 2012 to 2021, when both satellites were flying, a model learns how the old satellite's count relates to the new one's.</li>
+      <li><strong>Check.</strong> For 2022 to 2025, which the model never saw, compare its estimate with what the new satellite really recorded.</li>
+      <li><strong>Correct.</strong> Apply the model to 2001 to 2011, so every year is on the new satellite's scale.</li>
+      <li><strong>Export.</strong> Write the result as <code>cells.json</code>.</li>
+    </ol>
+
+    <h3>Why there is no server</h3>
+    <p>The corrected record is small (about 3 MB), so the website can load it directly and do all the work in the browser. That means nothing to keep running, nothing to pay for, and nothing that can be asleep when a judge opens the link.</p>
+  </section>
+
+  <section id="prototype">
+    <p class="eyebrow">Prototype</p>
+    <h2>A small working version</h2>
+    <p>Real numbers from our pipeline for 16 countries and four smaller regions. It shows the core calendar plus the newly planned points, so the team can see how each one works. The finished app will also let the user draw any region.</p>
+
+    <div class="controls">
+      <label for="pRegion">Country or region</label>
+      <select id="pRegion"></select>
+      <span class="seg" role="group" aria-label="Record">
+        <button type="button" id="pRaw">Raw record</button><button type="button" id="pHarm">Corrected record</button>
+      </span>
+      <span class="seg" role="group" aria-label="Measure">
+        <button type="button" id="pCount">Number of detections</button><button type="button" id="pFrp">Fire intensity <span class="tag">new</span></button>
+      </span>
+    </div>
+    <p id="pExplain" class="note"></p>
+
+    <div class="box" id="pFind"></div>
+
+    <div id="pMap" class="pmap"></div>
+    <p id="pMapNote" class="note"></p>
+    <label class="check"><input type="checkbox" id="pPts"> <span id="pPtsLabel">Show single detections</span> <span class="tag">new</span></label>
+
+    <div class="scroll"><table class="cal" id="pCal"></table></div>
+    <p class="note">Each box is one month. Darker means more. Click a box to compare it with the same month in other years, and to see it on the map.</p>
+    <div class="box" id="pMsg"><p>Click any month in the calendar.</p></div>
+
+    <h3>Single detections <span class="tag">new</span></h3>
+    <p id="pPtsIntro" class="note"></p>
+    <div class="scroll"><table id="pPtsTable"></table></div>
+    <button type="button" id="pCsv">Download these detections as CSV</button>
+
+    <h3>What each new part shows</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>New point</th><th>Where to see it here</th><th>How real is it</th></tr></thead>
+      <tbody>
+        <tr><td>Country menu, towards the whole world</td><td>The "Country or region" menu. Each country is loaded only when chosen.</td><td>Real, for 16 European countries. Other continents come later.</td></tr>
+        <tr><td>Findings for fire services and forest managers</td><td>The box above the map, in plain words.</td><td>Real. Calculated from the calendar.</td></tr>
+        <tr><td>Fire intensity</td><td>The "Fire intensity" switch. It shows heat output instead of the number of detections.</td><td>Real data, but the correction is weak for intensity: fit 0.48 against 0.94 for counts. Treat as experimental.</td></tr>
+        <tr><td>Single hotspots and their download</td><td>The "Show single detections" tick box, the table and the download button.</td><td>Real detections from one month of 2025. The finished app will show the last days from NASA's daily feed.</td></tr>
+        <tr><td>More than one VIIRS satellite</td><td>Not shown.</td><td>Needs NASA's daily feed and the free key.</td></tr>
+        <tr><td>Wildfires and agricultural burns</td><td>Not shown.</td><td>Needs a land-cover map we have not added yet.</td></tr>
+      </tbody>
+    </table></div>
+  </section>
+
+
+  <section id="coverage">
+    <p class="eyebrow">Challenge coverage</p>
+    <h2>Everything the challenge asks for, and where we stand</h2>
+    <p>Each row is taken from the challenge text. "Objective" rows are what NASA asks for. "Suggested" rows are optional ideas NASA lists.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>What the challenge says</th><th>Kind</th><th>How we cover it</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Harmonize MODIS and VIIRS hotspots so the sensor of origin no longer matters</td><td>Objective</td><td>Model that converts the old satellite's counts to the new satellite's scale, checked on held-out years</td><td><span class="st done">First version done</span></td></tr>
+        <tr><td>Combine the long MODIS history with the continuity and detail of VIIRS in one consistent time series</td><td>Objective</td><td><code>cells.json</code>: corrected MODIS for 2001 to 2011, VIIRS from 2012</td><td><span class="st done">Done</span></td></tr>
+        <tr><td>A web application that takes the harmonized data as input</td><td>Objective</td><td>Static web app that loads <code>cells.json</code></td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>A burning activity calendar: hotspots per month from the early 2000s to the present</td><td>Objective</td><td>Year-by-month heatmap, 2001 to 2025. See the prototype above.</td><td><span class="st part">Prototype done</span></td></tr>
+        <tr><td>"To the present"</td><td>Objective</td><td>NASA has no yearly file for 2026 yet. The current year must come from NASA's daily feed, which needs a free key.</td><td><span class="st gap">Gap</span></td></tr>
+        <tr><td>User selects a region</td><td>Objective</td><td>Draw on the map, preset regions, latitude and longitude box</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>User selects a specific date range</td><td>Objective</td><td>Start and end year (and month) selector above the calendar</td><td><span class="st gap">Gap, now on the checklist</span></td></tr>
+        <tr><td>Download analytics and visualizations</td><td>Objective</td><td>CSV of the calendar table, and the chart as an image</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>Show which periods of the year see more fires</td><td>Objective</td><td>The calendar columns, plus an average-by-month season curve</td><td><span class="st part">Prototype done</span></td></tr>
+        <tr><td>Show which years had more burning activity</td><td>Objective</td><td>Year totals beside the calendar and a ranking of years</td><td><span class="st part">Prototype done</span></td></tr>
+        <tr><td>Show how a current fire period compares with previous ones</td><td>Objective</td><td>"More than N of the other months on record" comparison</td><td><span class="st part">Prototype done</span></td></tr>
+        <tr><td>Compare the current month against the historical median for the area</td><td>Objective</td><td>Median for that calendar month, shown beside the selected month</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>Use NASA FIRMS hotspots</td><td>Objective</td><td>FIRMS MODIS and VIIRS S-NPP country files</td><td><span class="st done">Done</span></td></tr>
+        <tr><td>Colour ramps that show similarities and differences across months</td><td>Suggested</td><td>One pale-to-dark ramp used everywhere</td><td><span class="st part">Prototype done</span></td></tr>
+        <tr><td>Accessible colour ramps</td><td>Suggested</td><td>The ramp runs from light to dark, so it reads without colour. Numbers are printed in each box. Still to check with a colour-blindness simulator.</td><td><span class="st part">Partly</span></td></tr>
+        <tr><td>Downloadable CSV of the hot spots detected during a search</td><td>Suggested</td><td>We store monthly counts per map square, not single detections. The CSV will list counts per square and month. A list of single detections would need a server or a larger download.</td><td><span class="st gap">Partly, by design</span></td></tr>
+        <tr><td>Interactive map: draw the area of interest or enter latitude and longitude</td><td>Suggested</td><td>Both, plus presets</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>Historical comparisons, including anomalies against multi-year averages</td><td>Suggested</td><td>Difference from the multi-year average for each month</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>Number of fires detected and reported</td><td>Suggested</td><td>Detection counts in every box and total. We say "detections", because one fire produces many.</td><td><span class="st part">Prototype done</span></td></tr>
+        <tr><td>Audience: early warning and emergency responders, scientists, land managers, firefighters</td><td>Suggested</td><td>Plain-language findings above the calendar, method page for scientists</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>The sensors differ in "spatial resolutions, sensitivities, and observation schedules"</td><td>Objective</td><td>Resolution: shared grid. Sensitivity: the correction ratio. Observation schedule (time of day): a test using only the afternoon satellite.</td><td><span class="st gap">Time of day: now on the checklist</span></td></tr>
+        <tr><td>Number of fires detected "and reported"</td><td>Suggested</td><td>We show detections. "Reported" may mean official fire statistics, so we compare with those for a few countries.</td><td><span class="st gap">Now on the checklist</span></td></tr>
+        <tr><td>"Seasonal patterns, anomalies, and trends"</td><td>Objective</td><td>Trend view per region with a significance test</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>An "updated and consistent" calendar</td><td>Objective</td><td>Daily job that fetches new data</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>"Monitor sensitive regions"</td><td>Objective</td><td>Shareable link that reopens the same region and dates</td><td><span class="st todo">To build</span></td></tr>
+        <tr><td>Download "analytics and visualizations"</td><td>Objective</td><td>CSV for the numbers, images for the calendar and charts</td><td><span class="st gap">Images: now on the checklist</span></td></tr>
+        <tr><td>Changes in fire "intensity, extent, and frequency" (background)</td><td>Background</td><td>Intensity: experimental switch. Extent: squares burning per month. Frequency: years each square burned.</td><td><span class="st gap">Extent and frequency: now on the checklist</span></td></tr>
+      </tbody>
+    </table></div>
+    <div class="box">
+      <p><strong>Three gaps to close.</strong> A date range selector, data for the current year from NASA's daily feed, and a clear note about what the CSV contains. All three are now on the checklist.</p>
+    </div>
+  </section>
+
+  <section id="steps">
+    <p class="eyebrow">Steps remaining</p>
+    <h2>Checklist</h2>
+    <p class="note">Tick items as you finish them. Ticks are saved in this browser only, so each person sees their own.</p>
+    <div class="bar"><span id="bar"></span></div>
+    <p class="count" id="count"></p>
+
+    <h3>Setup</h3>
+    <ul class="tasks">
+      <li><input type="checkbox" id="t01" checked><label for="t01">Choose the challenge and confirm the data is public</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t02" checked><label for="t02">Create the Python environment (<code>venv</code>) and ignore it in git</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t03"><label for="t03">Everyone reads the data format in the README (ten values per row, one file per country) and agrees not to change it without telling the others</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t04"><label for="t04">Ask the Local Lead: live pitch format, what is due at 16:00, number of nominees</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t05"><label for="t05">Request the free NASA FIRMS key today. Four features depend on it: the current year, daily updates, single detections and the newer satellites.</label><span class="who">Data</span></li>
+      <li><input type="checkbox" id="t06"><label for="t06">Assign the five roles: two front end, AI, data, story</label><span class="who">All</span></li>
+      <li><input type="checkbox" id="t07"><label for="t07">Choose the project name and one-sentence tagline. The submission form and the video both need them.</label><span class="who">All</span></li>
+    </ul>
+
+    <h3>Data and model</h3>
+    <ul class="tasks">
+      <li><input type="checkbox" id="t10" checked><label for="t10">Download all fire files (624 files, 16 European countries)</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t11" checked><label for="t11">Build the grid table and the "problem" chart</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t12" checked><label for="t12">Train a first model and measure it against the simple baseline</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t13"><label for="t13">Improve the regional estimate so the model beats the simple ratio there too, or decide to ship the ratio</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t14" checked><label for="t14">Add more countries: done, 16 European countries</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t15"><label for="t15">Write the method and its limits in plain words</label><span class="who">AI</span></li>
+    </ul>
+
+    <h3>Web app</h3>
+    <ul class="tasks">
+      <li><input type="checkbox" id="t20"><label for="t20">Create the app and deploy an empty version to a public URL</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t21"><label for="t21">Country menu and calendar heatmap, loading one country file at a time</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t22"><label for="t22">Draw a region, preset regions, latitude and longitude box</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t23"><label for="t23">"How does this month compare" badge</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t24"><label for="t24">Raw versus corrected switch</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t25"><label for="t25">Spreadsheet (CSV) download</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t2d"><label for="t2d">Download the calendar and charts as images. The challenge asks for downloadable visualizations, not only data.</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t26"><label for="t26">Method page with the two charts and the accuracy numbers</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t27"><label for="t27">Phone layout and empty-region message</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t28"><label for="t28">Date range selector: start and end year above the calendar</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t29"><label for="t29">Show the median for the selected month and the difference from the multi-year average</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t2a"><label for="t2a">Label the CSV clearly: counts per map square and month, not single detections</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t2b"><label for="t2b">Check the colour ramp with a colour-blindness simulator</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t2c"><label for="t2c">Current year (2026) from NASA's daily feed, so the calendar reaches the present</label><span class="who">AI</span></li>
+    </ul>
+
+    <h3>Going deeper (after the core app works)</h3>
+    <ul class="tasks">
+      <li><input type="checkbox" id="t40"><label for="t40">Second model: estimate the fires the old satellite missed entirely</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t41"><label for="t41">Low and high estimate for every pre-2012 value, shown as a range</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t42"><label for="t42">Add viewing angle and heat output as model inputs</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t43"><label for="t43">One tested finding: has the fire season moved or grown longer in 25 years?</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t45"><label for="t45">Live "abnormal right now" flag from NASA's daily feed</label><span class="who">Software</span></li>
+    </ul>
+
+    <h3>Also in the challenge, now planned</h3>
+    <ul class="tasks">
+      <li><input type="checkbox" id="t50"><label for="t50">Decide the main user: fire services and forest managers. Write the findings panel for them.</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t51"><label for="t51">Fire intensity: the pipeline part is done and experimental (fit 0.48). Still to do: the count / intensity switch in the app, and a decision whether to show it.</label><span class="who">AI + Software</span></li>
+      <li><input type="checkbox" id="t52"><label for="t52">Single hotspots: list and download the individual detections of the last days for the selected region, from NASA's daily feed</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t53"><label for="t53">Other VIIRS satellites: use NOAA-20 and NOAA-21 in the daily feed for the current year</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t54"><label for="t54">Fire types: mark each square as mostly farmland or mostly forest with a land-cover map, and add a filter</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t55"><label for="t55">World, stage 1: pipeline handles one country at a time, add about ten major fire countries on other continents</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t56"><label for="t56">World, stage 2: all countries, with a country menu in the app</label><span class="who">AI + Software</span></li>
+      <li><input type="checkbox" id="t57"><label for="t57">Trend view: is fire activity rising or falling over the years in this region, with a significance test</label><span class="who">AI + Software</span></li>
+      <li><input type="checkbox" id="t58"><label for="t58">Automatic update: a daily job fetches new NASA data and refreshes the calendar without anyone doing it by hand</label><span class="who">Data</span></li>
+      <li><input type="checkbox" id="t59"><label for="t59">Monitor a region: a link that reopens the same region and dates, so a user can save it and come back</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t5a"><label for="t5a">Time of day: the satellites pass at different hours. Test the correction using only the afternoon satellite, and report whether it changes the result.</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t5b"><label for="t5b">"Detected and reported": compare our yearly totals with official fire statistics for a few European countries</label><span class="who">Data</span></li>
+      <li><input type="checkbox" id="t5c"><label for="t5c">Extent and frequency: the challenge background names fire intensity, extent and frequency. Show extent (how many map squares burned in a month) and frequency (in how many of the 25 years each square burned).</label><span class="who">Software</span></li>
+    </ul>
+
+    <h3>Submission</h3>
+    <ul class="tasks">
+      <li><input type="checkbox" id="t30"><label for="t30">All five members registered for Cottbus and listed on the team page</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t31"><label for="t31">Project page text: summary, method, NASA data, AI use, references</label><span class="who">AI</span></li>
+      <li><input type="checkbox" id="t32"><label for="t32">Demo video, 30 seconds or less, public link</label><span class="who">Software</span></li>
+      <li><input type="checkbox" id="t33"><label for="t33">Make the GitHub repository public</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t34"><label for="t34">Test every link in a private browser window</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t35"><label for="t35">Submit on the NASA site before the local deadline, Sunday 16:00</label><span class="who">Both</span></li>
+      <li><input type="checkbox" id="t36"><label for="t36">Rehearse a two-minute live pitch</label><span class="who">Both</span></li>
+    </ul>
+    <button type="button" id="reset">Reset ticks to the saved defaults</button>
+  </section>
+
+  <section id="deeper">
+    <p class="eyebrow">Going deeper</p>
+    <h2>Seven ways to make the project stronger</h2>
+    <p>The core app is simple on purpose. These steps go deeper into the challenge. Do them only after the core app runs on the public link. They are listed in order of value.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Step</th><th>In plain words</th><th>Why it helps us</th><th>Who</th></tr></thead>
+      <tbody>
+        <tr><td>1. Recover missed fires</td><td>About a quarter of the newer satellite's detections are in places where the older one saw nothing. A second model estimates the chance of unseen fire from neighbouring squares, the season and local history.</td><td>Fixes our one weak number and gives the pitch a headline.</td><td>AI</td></tr>
+        <tr><td>2. Show uncertainty</td><td>Give a low and a high estimate for each corrected value and draw the range in the calendar.</td><td>Honest science. Few teams will do it. Helps the Validity score.</td><td>AI</td></tr>
+        <tr><td>3. Use the physics</td><td>The older satellite misses more at the edge of its view. The files include the viewing angle and heat output of each detection. Feed them to the model.</td><td>A real improvement we can explain.</td><td>AI</td></tr>
+        <tr><td>4. Find something new</td><td>Test whether the fire season has moved or grown longer over 25 years in a region.</td><td>A finding that needs the joined record. The strongest part of the story.</td><td>Both</td></tr>
+        <tr><td>5. Harmonize intensity</td><td>Do the same correction for fire energy, so the calendar shows how intense a month was.</td><td>Goes past counting. Helps Creativity.</td><td>AI</td></tr>
+        <tr><td>6. Go live</td><td>Pull the last few days from NASA's daily feed and flag regions that are abnormal right now.</td><td>Makes the demo current. Helps Impact.</td><td>Software</td></tr>
+        <tr><td>7. Cover every country</td><td>Run the pipeline for all countries and load data per country in the app.</td><td>Shows it is a general tool, not a regional demo.</td><td>Software</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>Suggested split:</strong> the AI engineer takes steps 1, 2 and 3. The software engineer takes step 6 after the core app. Both do step 4 on Sunday morning.</p>
+
+    <h3>Six more points from the challenge text, now in the plan</h3>
+    <p>These are mentioned in the challenge and were undecided. All are possible. They come after the core app, in this order.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Point in the challenge</th><th>What we will do</th><th>Effort</th><th>If time runs out</th></tr></thead>
+      <tbody>
+        <tr><td>Audience: responders, scientists, land managers, firefighters</td><td>Main user is fire services and forest managers. A findings panel in plain words for them, a method page for scientists.</td><td>Small</td><td>Do it anyway. It is mostly wording.</td></tr>
+        <tr><td>Fire intensity</td><td>The files hold heat output for every detection. Sum it per square and month, correct it the same way, add a count / intensity switch.</td><td>Small to medium</td><td>Say that we count detections only.</td></tr>
+        <tr><td>CSV of the hotspots detected</td><td>History downloads as monthly counts. For the last days, list and download the single detections from NASA's daily feed.</td><td>Medium, needs the free key</td><td>Offer counts only and label the file clearly.</td></tr>
+        <tr><td>"VIIRS sensors", more than one</td><td>NASA has no yearly country files for the newer VIIRS satellites, but the daily feed has them. Use them for the current year.</td><td>Small once the daily feed works</td><td>Say that the history uses one VIIRS satellite.</td></tr>
+        <tr><td>Wildfires and agricultural burns</td><td>Mark each square as mostly farmland or mostly forest using a public land-cover map, then let the user filter.</td><td>Medium to large, new dataset</td><td>Say that both are counted together.</td></tr>
+        <tr><td>Any area of interest in the world</td><td>Stage 1: about ten major fire countries on other continents. Stage 2: every country. Runs in the background once the app works.</td><td>Large, mostly download time</td><td>Say that the demo covers Europe and the method is general.</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Three more points found on a full re-read of the challenge</h3>
+    <div class="scroll"><table>
+      <thead><tr><th>Words in the challenge</th><th>What we will do</th><th>Effort</th></tr></thead>
+      <tbody>
+        <tr><td>"Seasonal patterns, anomalies, and trends"</td><td>A trend view per region: yearly totals with a trend line and a test of whether the rise or fall is real or just chance. Only fair on the corrected record.</td><td>Small. The data is already there.</td></tr>
+        <tr><td>An "updated and consistent" calendar</td><td>A scheduled daily job fetches new detections from NASA's daily feed and republishes the data.</td><td>Small once the daily feed works</td></tr>
+        <tr><td>"Monitor sensitive regions"</td><td>The region and date range are stored in the page link. Saving or sharing the link reopens the same view with fresh data.</td><td>Small</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Left out on purpose: fire forecasting and burned-area mapping. The challenge mentions them as background. Each is a separate project and needs other data.</p>
+
+    <p><strong>Order matters.</strong> The first four are cheap and close real gaps. Fire types and the world are bigger and go last. None of them comes before a working app on a public link.</p>
+
+    <h3>Which countries we use, and why</h3>
+    <p>The pipeline now covers 16 European countries. The first test used four. The choice is ours, not a NASA requirement.</p>
+    <ul>
+      <li><strong>Germany</strong> is our local story: Brandenburg forest fires, for judges in Cottbus. But Germany has too few fire detections to train a model alone.</li>
+      <li><strong>Portugal, Greece and Spain</strong> are among the most fire-affected countries in Europe. They supply enough examples for the model to learn from, including extreme years such as 2017 in Portugal.</li>
+      <li><strong>Twelve more</strong> were added for coverage and for a fairer test: Italy, France, Croatia, Turkey, Poland, Czech Republic, Austria, Hungary, Sweden, Bulgaria, Romania and Ukraine.</li>
+      <li><strong>Not the whole world.</strong> Very large fire countries such as Brazil and Russia are about 100 MB per year each. They are left out so the pipeline stays fast.</li>
+    </ul>
+    <p>The list is at the top of <code>pipeline/01_download.py</code>. Accuracy differs by country, so the results section below reports Germany separately.</p>
+  </section>
+
+  <section id="roadmap">
+    <p class="eyebrow">Roadmap</p>
+    <h2>Five people, Saturday evening to Sunday 16:00</h2>
+    <p class="note">The venue closes at 23:00 on Saturday and reopens at 09:00 on Sunday. The local deadline is Sunday 16:00.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Time</th><th>Front end 1</th><th>Front end 2</th><th>AI</th><th>Data</th><th>Story</th></tr></thead>
+      <tbody>
+        <tr><td class="t">Sat until 20:00</td><td>Create the app, deploy it empty, country menu, calendar</td><td>Map with squares, click a month</td><td>Model that beats the simple ratio</td><td>Request the NASA key. Pipeline handles one country at a time.</td><td>Ask the Local Lead the open questions. Draft the summary.</td></tr>
+        <tr><td class="t">Sat 20:00–23:00</td><td>Raw / corrected switch, findings box</td><td>Draw a region, latitude and longitude box, date range</td><td>Low and high estimates. Time-of-day test.</td><td>Current year from the daily feed. Start other continents.</td><td>Project page: problem, method, NASA data</td></tr>
+        <tr><td class="t"><strong>Sat 23:00</strong></td><td colspan="5"><strong>Checkpoint: the calendar works for a chosen country on the public link.</strong></td></tr>
+        <tr><td class="t">Overnight</td><td colspan="5">Sleep. Long downloads may run on one laptop.</td></tr>
+        <tr><td class="t">Sun 09:00–10:00</td><td>Trend view</td><td>CSV and chart download, shareable link</td><td>Final comparison. <strong>10:00: decide model or ratio.</strong></td><td>Daily update job. Official statistics check.</td><td>Validation chart and limits into the page</td></tr>
+        <tr><td class="t">Sun 10:00–12:00</td><td>Method page, phone layout</td><td>Colour check, empty states</td><td>Help integrate the final data</td><td>Final data files into the app</td><td>Video script, screenshots</td></tr>
+        <tr><td class="t"><strong>Sun 12:00</strong></td><td colspan="5"><strong>Feature freeze. Bug fixes only.</strong></td></tr>
+        <tr><td class="t">Sun 12:00–14:00</td><td colspan="2">Bug fixes, test on phones and a second network</td><td colspan="2">Review numbers and wording on the page</td><td>Record the 30-second video, finish the page</td></tr>
+        <tr><td class="t">Sun 14:00–15:00</td><td colspan="5">Everyone: read the page against the five judging criteria. Test every link in a private window.</td></tr>
+        <tr><td class="t">Sun 15:00–15:30</td><td colspan="5">Submit on the NASA site.</td></tr>
+        <tr><td class="t">Sun 15:30–16:00</td><td colspan="5">Buffer. Rehearse the two-minute pitch.</td></tr>
+      </tbody>
+    </table></div>
+    <p><strong>If we fall behind,</strong> cut in this order: other continents, fire types, intensity, official statistics check, drawing (keep the country menu and the latitude and longitude box). Never cut the validation chart, the raw / corrected switch or the project page.</p>
+  </section>
+
+  <section id="run">
+    <p class="eyebrow">How to run the project</p>
+    <h2>Data pipeline</h2>
+    <pre>python3 -m venv venv                         # once
+venv/bin/pip install -r requirements.txt     # once
+venv/bin/python pipeline/01_download.py      # NASA files into data/raw/ (skips files already there)
+venv/bin/python pipeline/02_harmonize.py     # writes data/out/
+venv/bin/python pipeline/03_build_prototype_data.py   # refreshes the prototype on this page (assets/proto/)</pre>
+    <p>The second script writes four files into <code>data/out/</code>:</p>
+    <ul>
+      <li><code>cells.json</code>: the data the web app reads.</li>
+      <li><code>report.json</code>: the accuracy numbers.</li>
+      <li><code>problem.png</code> and <code>validation.png</code>: the two charts for the pitch.</li>
+    </ul>
+    <h3>Format of cells.json</h3>
+    <p>Each row is one map square (0.25°) in one month:</p>
+    <pre>[cell_lat, cell_lon, year, month, modis_raw, viirs_raw, harmonized]</pre>
+    <p><code>viirs_raw</code> is 0 before 2012 because the sensor did not exist yet. The app must show that as "no data", not as "no fire".</p>
+    <h3>Web app</h3>
+    <p>Not created yet. See the software steps in <a href="docs/implementation-blueprint.md">docs/implementation-blueprint.md</a>.</p>
+  </section>
+
+  <section id="results">
+    <p class="eyebrow">Results so far</p>
+    <h2>Run on 16 countries, Saturday afternoon</h2>
+    <p>Methods were fitted on 2012 to 2021 and tested on 2022 to 2025, which they never saw. "Fit" is R²: 1 is perfect, 0 is useless.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>Method</th><th>Fit for regional monthly totals</th><th>Error on Germany's total</th></tr></thead>
+      <tbody>
+        <tr><td>No correction (old satellite as it is)</td><td class="t">0.50</td><td class="t">about one third of the true count</td></tr>
+        <tr><td><strong>One ratio for all countries (multiply by 3.16)</strong>, shipped</td><td class="t"><strong>0.94</strong></td><td class="t"><strong>+4.5%</strong></td></tr>
+        <tr><td>One ratio per country</td><td class="t">0.94</td><td class="t">+11.9%</td></tr>
+        <tr><td>Machine-learning model per map square</td><td class="t">0.90</td><td class="t">-59.1%</td></tr>
+      </tbody>
+    </table></div>
+    <div class="box">
+      <p><strong>What this means.</strong> The correction works: the fit for regional monthly totals rises from 0.50 to 0.94. The simplest method is currently the best, so that is what <code>cells.json</code> uses.</p>
+      <p>The machine-learning model is better for single map squares where the old satellite saw fire (average error 5.91 against 6.39). It is much worse for whole regions in low-fire countries such as Germany, because it cannot yet account for fires the old satellite missed entirely. Making it beat the simple ratio is the AI engineer's main task.</p>
+      <p><strong>Known limit.</strong> All methods underestimate low-fire countries such as Austria, Poland, Sweden and the Czech Republic by 20 to 50%. The per-country numbers are in <code>data/out/report.json</code>.</p>
+    </div>
+    <div class="imgs">
+      <img src="data/out/problem.png" alt="Bar chart of yearly detections for both sensors">
+      <img src="data/out/validation.png" alt="Scatter plot of estimated against actual detections on held-out years">
+    </div>
+  </section>
+</div>
+
+<script>
+  const KEY = "fire-calendar-board-v1";
+  const boxes = [...document.querySelectorAll(".tasks input")];
+  const defaults = Object.fromEntries(boxes.map(b => [b.id, b.checked]));
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+  function render() {
+    const done = boxes.filter(b => b.checked).length;
+    document.getElementById("bar").style.width = (100 * done / boxes.length) + "%";
+    document.getElementById("count").textContent = done + " of " + boxes.length + " steps done, " + (boxes.length - done) + " remaining";
+  }
+  boxes.forEach(b => {
+    if (b.id in saved) b.checked = saved[b.id];
+    b.addEventListener("change", () => {
+      saved[b.id] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+      render();
+    });
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    saved = {};
+    try { localStorage.removeItem(KEY); } catch (e) {}
+    boxes.forEach(b => b.checked = defaults[b.id]);
+    render();
+  });
+  render();
+</script>
+
+<script src="assets/proto/index.js"></script>
+<script>
+(function () {
+  const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"], G = 0.125;
+  const $ = id => document.getElementById(id);
+  const sel = $("pRegion"), cal = $("pCal"), msg = $("pMsg"), explain = $("pExplain"), mapNote = $("pMapNote"), find = $("pFind");
+  const INDEX = window.PROTO_INDEX || [], PROTO = window.PROTO || {};
+  if (!INDEX.length) { $("prototype").insertAdjacentHTML("beforeend", "<p><strong>Prototype data not found.</strong> Run <code>venv/bin/python pipeline/03_build_prototype_data.py</code>.</p>"); return; }
+  let rec = "harm", frp = false, picked = null, map = null, ready = false, svgMode = false, R = null;
+  INDEX.forEach(i => { const o = document.createElement("option"); o.textContent = i.name; sel.appendChild(o); });
+  sel.value = "Germany (whole country)";
+  const key = () => rec + (frp ? "F" : "");
+  const unit = () => frp ? "MW of heat output" : "detections";
+  const fmt = v => v >= 10000 ? Math.round(v / 1000) + "k" : String(v);
+  const big = v => Math.round(v).toLocaleString("en");
+  function colour(t) { return { bg: "hsl(" + (38 - 30 * t) + " 90% " + (88 - 58 * t) + "%)", fg: t > 0.5 ? "#fff" : "#3a1500" }; }
+
+  function squares() {
+    const sum = new Map(), col = (rec === "raw" ? 1 : 2) + (frp ? 2 : 0);
+    const keys = picked ? [picked[0] + "-" + picked[1]] : Object.keys(R.m);
+    keys.forEach(k => (R.m[k] || []).forEach(r => sum.set(r[0], (sum.get(r[0]) || 0) + r[col])));
+    const max = Math.max(1, ...sum.values());
+    return [...sum].filter(e => e[1] > 0).map(([i, v]) => ({ la: R.cells[i][0], lo: R.cells[i][1], t: Math.sqrt(v / max), v: v }));
+  }
+  const ring = (lo, la) => [[[lo-G,la-G],[lo+G,la-G],[lo+G,la+G],[lo-G,la+G],[lo-G,la-G]]];
+  function drawSvg() {
+    const b = R.box, k = Math.cos((b[1] + b[3]) / 2 * Math.PI / 180), pad = 0.3;
+    const x = lo => (lo - b[0] + pad) * k * 100, y = la => (b[3] + pad - la) * 100;
+    const W = (b[2] - b[0] + 2 * pad) * k * 100, H = (b[3] - b[1] + 2 * pad) * 100;
+    let s = '<svg viewBox="0 0 ' + W.toFixed(0) + ' ' + H.toFixed(0) + '" width="100%" height="100%" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Map squares with fire activity">';
+    squares().forEach(q => { const c = colour(q.t);
+      s += '<rect x="' + x(q.lo - G).toFixed(1) + '" y="' + y(q.la + G).toFixed(1) + '" width="' + (2 * G * k * 100).toFixed(1) + '" height="' + (2 * G * 100).toFixed(1) + '" fill="' + c.bg + '" stroke="rgba(0,0,0,.15)"><title>' + big(q.v) + ' ' + unit() + '</title></rect>'; });
+    s += '<rect x="' + x(b[0]).toFixed(1) + '" y="' + y(b[3]).toFixed(1) + '" width="' + ((b[2] - b[0]) * k * 100).toFixed(1) + '" height="' + ((b[3] - b[1]) * 100).toFixed(1) + '" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="6 5"/>';
+    if ($("pPts").checked) R.pts.rows.forEach(p => { s += '<circle cx="' + x(p[3]).toFixed(1) + '" cy="' + y(p[2]).toFixed(1) + '" r="' + Math.max(3, W / 220).toFixed(1) + '" fill="#0b5fa5" stroke="#fff" stroke-width="1"/>'; });
+    $("pMap").innerHTML = s + "</svg>";
+  }
+  function drawMap(fit) {
+    mapNote.textContent = "Map: " + (frp ? "heat output" : "detections") + " per map square, " + (picked ? "in " + MONTHS[picked[1]] + " " + (2001 + picked[0]) : "all years added up") +
+      ". Each square is about 25 km. The dashed outline is the selected area." + (svgMode ? " Simple view without a background map, because this browser could not start the interactive map." : "");
+    if (svgMode) { drawSvg(); return; }
+    if (!ready) return;
+    const b = R.box;
+    map.getSource("sq").setData({ type: "FeatureCollection", features: squares().map(q => ({ type: "Feature", properties: { t: q.t }, geometry: { type: "Polygon", coordinates: ring(q.lo, q.la) } })) });
+    map.getSource("box").setData({ type: "Feature", properties: {}, geometry: { type: "Polygon", coordinates: [[[b[0],b[1]],[b[2],b[1]],[b[2],b[3]],[b[0],b[3]],[b[0],b[1]]]] } });
+    map.getSource("pts").setData({ type: "FeatureCollection", features: $("pPts").checked ? R.pts.rows.map(p => ({ type: "Feature", properties: {}, geometry: { type: "Point", coordinates: [p[3], p[2]] } })) : [] });
+    if (fit) map.fitBounds([[b[0], b[1]], [b[2], b[3]]], { padding: 30, duration: 0 });
+  }
+  function findings() {
+    const d = R.cal[key()], yt = d.map(r => r.reduce((a, b) => a + b, 0)), total = yt.reduce((a, b) => a + b, 0);
+    if (!total) { find.innerHTML = "<p><strong>For fire services and forest managers.</strong> No fire activity on record for this area.</p>"; return; }
+    const mt = MONTHS.map((_, m) => d.reduce((a, r) => a + r[m], 0));
+    const top = mt.map((v, m) => [v, m]).sort((a, b) => b[0] - a[0]).slice(0, 3).sort((a, b) => a[1] - b[1]);
+    const share = Math.round(100 * top.reduce((a, t) => a + t[0], 0) / total);
+    const sorted = [...yt].sort((a, b) => a - b), med = sorted[12], worst = yt.indexOf(Math.max(...yt)), last = yt[24];
+    const diff = med ? Math.round(100 * (last / med - 1)) : 0;
+    find.innerHTML = "<p><strong>For fire services and forest managers</strong> <span class=\"tag\">new</span></p><ul>" +
+      "<li><strong>Main season:</strong> " + top.map(t => MONTHS[t[1]]).join(", ") + " hold " + share + "% of all " + (frp ? "heat output" : "detections") + " since 2001.</li>" +
+      "<li><strong>Worst year:</strong> " + (2001 + worst) + ", with " + (med ? (yt[worst] / med).toFixed(1) + " times" : "far above") + " a typical year.</li>" +
+      "<li><strong>Latest full year, 2025:</strong> " + (diff >= 0 ? diff + "% above" : -diff + "% below") + " a typical year (the median of all 25 years).</li></ul>" +
+      (rec === "raw" ? "<p class=\"note\">These statements use the raw record, so they mix two satellites and are not reliable. Switch to the corrected record.</p>" : "");
+  }
+  function points() {
+    const p = R.pts;
+    $("pPtsLabel").textContent = "Show single detections on the map (" + p.label + ")";
+    $("pPtsIntro").textContent = p.total ? p.total.toLocaleString("en") + " single detections from the newer satellite in " + p.label + " for this area" + (p.total > p.rows.length ? ", first " + p.rows.length + " included" : "") + ". The table shows the first 8." : "No single detections available for this area.";
+    $("pPtsTable").innerHTML = "<thead><tr><th>Date</th><th>Time (UTC)</th><th>Latitude</th><th>Longitude</th><th>Heat (MW)</th><th>Day or night</th></tr></thead><tbody>" +
+      p.rows.slice(0, 8).map(r => "<tr><td>" + r[0] + "</td><td>" + r[1].slice(0, 2) + ":" + r[1].slice(2) + "</td><td>" + r[2] + "</td><td>" + r[3] + "</td><td>" + r[4] + "</td><td>" + (r[5] === "D" ? "Day" : "Night") + "</td></tr>").join("") + "</tbody>";
+    $("pCsv").hidden = !p.rows.length;
+  }
+  function draw(fit) {
+    const d = R.cal[key()], max = Math.max(1, ...R.cal["raw" + (frp ? "F" : "")].flat(), ...R.cal["harm" + (frp ? "F" : "")].flat());
+    $("pRaw").setAttribute("aria-pressed", rec === "raw"); $("pHarm").setAttribute("aria-pressed", rec === "harm");
+    $("pCount").setAttribute("aria-pressed", !frp); $("pFrp").setAttribute("aria-pressed", frp);
+    explain.textContent = (rec === "raw"
+      ? "Raw record: old satellite until 2011, new satellite from 2012 (below the line). The year totals jump at the line because the satellites measure differently, not because fire changed."
+      : "Corrected record: years before 2012 (dashed boxes) are our estimate of what the new satellite would have measured.") +
+      (frp ? " Showing fire intensity: the heat output of all detections added up, in megawatts. This correction is experimental." : "");
+    let h = "<tr><th></th>" + MONTHS.map(m => "<th>" + m + "</th>").join("") + "<th>Year total</th></tr>";
+    d.forEach((row, yi) => {
+      const y = 2001 + yi;
+      h += "<tr" + (y === 2012 ? ' class="split"' : "") + "><th>" + y + "</th>";
+      row.forEach((v, mi) => {
+        const c = v ? colour(Math.sqrt(v / max)) : null, cls = [(rec === "harm" && y < 2012) ? "est" : "", (picked && picked[0] === yi && picked[1] === mi) ? "sel" : ""].join(" ").trim();
+        h += "<td data-y=\"" + yi + "\" data-m=\"" + mi + "\"" + (cls ? " class=\"" + cls + "\"" : "") + (c ? " style=\"background:" + c.bg + ";color:" + c.fg + "\"" : "") + ">" + (v ? fmt(v) : "") + "</td>";
+      });
+      h += "<td class=\"tot\">" + big(row.reduce((a, b) => a + b, 0)) + "</td></tr>";
+    });
+    cal.innerHTML = h;
+    findings(); points();
+    if (picked) say();
+    drawMap(fit);
+  }
+  function say() {
+    const d = R.cal[key()], yi = picked[0], mi = picked[1], v = d[yi][mi];
+    const others = d.map(r => r[mi]).filter((_, i) => i !== yi), below = others.filter(x => x < v).length;
+    const med = [...d.map(r => r[mi])].sort((a, b) => a - b)[12];
+    msg.innerHTML = "<p><strong>" + MONTHS[mi] + " " + (2001 + yi) + ", " + sel.value + ":</strong> " + big(v) + " " + unit() + ".</p>" +
+      "<p>That is more than " + below + " of the " + others.length + " other " + MONTHS[mi] + " months on record. The typical " + MONTHS[mi] + " (median) has " + big(med) + "." +
+      (rec === "raw" ? " In the raw record this comparison is unfair, because the two satellites measure differently." : "") + "</p>";
+  }
+  function show(fit) {
+    const name = sel.value, entry = INDEX.find(i => i.name === name);
+    picked = null; msg.innerHTML = "<p>Click any month in the calendar.</p>";
+    if (PROTO[name]) { R = PROTO[name]; draw(fit); return; }
+    find.innerHTML = "<p>Loading " + name + " …</p>";
+    const s = document.createElement("script"); s.src = "assets/proto/" + entry.file + ".js";
+    s.onload = () => { R = PROTO[name]; if (sel.value === name) draw(fit); };
+    s.onerror = () => { find.innerHTML = "<p>Could not load the data file for " + name + ".</p>"; };
+    document.head.appendChild(s);
+  }
+  cal.addEventListener("click", e => { const td = e.target.closest("td[data-y]"); if (!td || !R) return; picked = [+td.dataset.y, +td.dataset.m]; draw(false); });
+  sel.addEventListener("change", () => show(true));
+  $("pRaw").addEventListener("click", () => { rec = "raw"; if (R) draw(false); });
+  $("pHarm").addEventListener("click", () => { rec = "harm"; if (R) draw(false); });
+  $("pCount").addEventListener("click", () => { frp = false; if (R) draw(false); });
+  $("pFrp").addEventListener("click", () => { frp = true; if (R) draw(false); });
+  $("pPts").addEventListener("change", () => { if (R) drawMap(false); });
+  $("pCsv").addEventListener("click", () => {
+    const csv = "acq_date,acq_time_utc,latitude,longitude,frp_mw,daynight\n" + R.pts.rows.map(r => r.join(",")).join("\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "detections_" + R.pts.label.replace(" ", "_") + ".csv"; document.body.appendChild(a); a.click(); a.remove();
+  });
+  function useSvg() { svgMode = true; map = null; $("pMap").style.padding = "8px"; if (R) drawMap(false); }
+  if (window.maplibregl) {
+    try {
+      map = new maplibregl.Map({ container: "pMap", style: "https://tiles.openfreemap.org/styles/positron", center: [10.4, 51.2], zoom: 4.5, attributionControl: { compact: true } });
+      map.addControl(new maplibregl.NavigationControl({ showCompass: false }));
+      map.on("load", () => {
+        ["sq", "box", "pts"].forEach(id => map.addSource(id, { type: "geojson", data: { type: "FeatureCollection", features: [] } }));
+        map.addLayer({ id: "sq", type: "fill", source: "sq", paint: { "fill-opacity": 0.75, "fill-color": ["interpolate", ["linear"], ["get", "t"], 0, "#fde3b4", 0.5, "#f08a2c", 1, "#7a1a04"] } });
+        map.addLayer({ id: "box", type: "line", source: "box", paint: { "line-color": "#1b2430", "line-width": 2, "line-dasharray": [2, 2] } });
+        map.addLayer({ id: "pts", type: "circle", source: "pts", paint: { "circle-radius": 4, "circle-color": "#0b5fa5", "circle-stroke-color": "#fff", "circle-stroke-width": 1 } });
+        ready = true; if (R) drawMap(true);
+      });
+    } catch (e) { useSvg(); }
+  } else { useSvg(); }
+  show(true);
+})();
+</script>
+</body>
+</html>

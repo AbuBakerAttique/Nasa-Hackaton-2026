@@ -1,4 +1,4 @@
-# Local Winning Strategy
+base# Local Winning Strategy
 
 NASA Space Apps 2026 · Cottbus · researched Saturday 14 November 2026, 13:30 CET
 
@@ -27,13 +27,13 @@ The Judging & Awards Guide says Space Apps is "at its core a collaborative event
 
 The same five criteria apply "at every level of judging, from Local and Universal Events to Executive Judging". Each is scored 1 to 5. No weights are published.
 
-| Criterion | What the guide says it rewards | What a score of 5 looks like |
-|---|---|---|
-| Impact | Addressing a problem, minor or major, and how many people it helps or inspires | A significant problem, extensive reach, quality far above expectations |
-| Creativity | Originality: a novel concept or a meaningful improvement on existing ideas | A groundbreaking approach that challenges conventional methods |
-| Validity | Grounded in science, technically feasible, complete, usable | Scientifically sound, fully developed, ready for real use, user-friendly |
-| Relevance | "Fully and directly addresses the challenge" and uses NASA data "as a core component rather than a superficial addition" | Deeply connected to the challenge goals, NASA data integral to success |
-| Presentation | Clear communication of the challenge, the solution and why it matters. Judged from the demo and the full project | A structured, compelling, polished story |
+| Criterion    | What the guide says it rewards                                                                                           | What a score of 5 looks like                                             |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| Impact       | Addressing a problem, minor or major, and how many people it helps or inspires                                           | A significant problem, extensive reach, quality far above expectations   |
+| Creativity   | Originality: a novel concept or a meaningful improvement on existing ideas                                               | A groundbreaking approach that challenges conventional methods           |
+| Validity     | Grounded in science, technically feasible, complete, usable                                                              | Scientifically sound, fully developed, ready for real use, user-friendly |
+| Relevance    | "Fully and directly addresses the challenge" and uses NASA data "as a core component rather than a superficial addition" | Deeply connected to the challenge goals, NASA data integral to success   |
+| Presentation | Clear communication of the challenge, the solution and why it matters. Judged from the demo and the full project         | A structured, compelling, polished story                                 |
 
 The guide adds that many teams excel at the first four and should "pay equal attention to the final criterion: presentation".
 
@@ -47,11 +47,11 @@ The guide adds that many teams excel at the first four and should "pay equal att
 
 ### After the local stage
 
-| Phase | Who judges | Outcome | Date |
-|---|---|---|---|
-| 1 | Local Judges | Global Nominees | 3 December 2026 |
-| 2 | NASA and partner-agency experts | Global Finalists and Honorable Mentions | 17 December 2026 |
-| 3 | Executive committee of agency leaders | 10 Global Winners, one per award | 26 January 2027 |
+| Phase | Who judges                            | Outcome                                 | Date             |
+| ----- | ------------------------------------- | --------------------------------------- | ---------------- |
+| 1     | Local Judges                          | Global Nominees                         | 3 December 2026  |
+| 2     | NASA and partner-agency experts       | Global Finalists and Honorable Mentions | 17 December 2026 |
+| 3     | Executive committee of agency leaders | 10 Global Winners, one per award        | 26 January 2027  |
 
 ### Eligibility for global judging
 
@@ -102,11 +102,11 @@ All five criteria count equally on paper. A working prototype is the main eviden
 
 Split of remaining effort:
 
-| Share | Work |
-|---|---|
-| 60% | Building the product |
-| 15% | Evidence that it works: validation plot, measured error |
-| 25% | Project page, demo and pitch |
+| Share | Work                                                    |
+| ----- | ------------------------------------------------------- |
+| 60%   | Building the product                                    |
+| 15%   | Evidence that it works: validation plot, measured error |
+| 25%   | Project page, demo and pitch                            |
 
 ### Showing meaningful use of NASA data
 
@@ -150,16 +150,16 @@ Our own observations from the winners study:
 
 At the time of writing there are about 26 hours until the local deadline, and the venue is closed from Saturday 23:00 to Sunday 09:00.
 
-| When | Goal |
-|---|---|
-| Sat by 15:00 | Data downloaded, scope and pitch sentence agreed, empty app on a public URL |
-| Sat by 23:00 | Pipeline done, model trained, map and calendar working on real data |
-| Overnight (remote, optional) | Validation plot, anomaly logic, draft of the project page |
-| Sun 09:00–12:00 | Integration, live alert, phone layout |
-| Sun 12:00 | Feature freeze |
-| Sun 12:00–14:30 | Video, project page, pitch rehearsal |
-| Sun 14:30–15:30 | Test every link in a private browser window, submit on the NASA site |
-| Sun 16:00 | Local deadline |
+| When                         | Goal                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| Sat by 15:00                 | Data downloaded, scope and pitch sentence agreed, empty app on a public URL |
+| Sat by 23:00                 | Pipeline done, model trained, map and calendar working on real data         |
+| Overnight (remote, optional) | Validation plot, anomaly logic, draft of the project page                   |
+| Sun 09:00–12:00              | Integration, live alert, phone layout                                       |
+| Sun 12:00                    | Feature freeze                                                              |
+| Sun 12:00–14:30              | Video, project page, pitch rehearsal                                        |
+| Sun 14:30–15:30              | Test every link in a private browser window, submit on the NASA site        |
+| Sun 16:00                    | Local deadline                                                              |
 
 ## Open questions for the Local Lead
 
