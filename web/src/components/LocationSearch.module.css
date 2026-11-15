@@ -1,0 +1,37 @@
+/* Floating place search on the fire map; same dark glass as the hotspot pill. */
+.search { width: 100%; font-size: 12px; color: #dce9f5; }
+.bar { display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 5px 0 11px; border: 1px solid #2b455b; border-radius: 10px; background: #07121ee6; backdrop-filter: blur(6px); box-shadow: 0 8px 28px #0006; transition: border-color .15s, box-shadow .15s; }
+.bar:focus-within { border-color: #8ed3e1; box-shadow: 0 0 0 3px #8ed3e133, 0 8px 28px #0006; }
+.icon { width: 16px; height: 16px; flex: none; fill: none; stroke: #8da7bc; stroke-width: 2; stroke-linecap: round; }
+.bar input { flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: #e6f3fc; font-size: 13px; outline: none; }
+.bar input::placeholder { color: #6f8ba0; }
+.clear { flex: none; padding: 0 6px; font-size: 18px; line-height: 1; color: #8da7bc; }
+.clear:hover { color: #fff; }
+.spinner { flex: none; width: 14px; height: 14px; margin: 0 4px; border: 2px solid #8ed3e155; border-top-color: #8ed3e1; border-radius: 50%; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.locate { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-left: 1px solid #22374b; border-radius: 0 7px 7px 0; color: #8ed3e1; }
+.locate svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.locate:hover:enabled { color: #fff; }
+.locate:disabled { opacity: .5; cursor: wait; }
+.results { margin: 6px 0 0; padding: 4px; list-style: none; border-radius: 12px; }
+.results > li[role="option"] { display: flex; flex-direction: column; gap: 1px; padding: 7px 9px; border-radius: 7px; cursor: pointer; }
+.results > li[aria-selected="true"] { background: #16324a; }
+.results strong { font-size: 12.5px; font-weight: 600; color: #e6f3fc; }
+.results small { font-size: 10.5px; color: #8da7bc; }
+.credit { padding: 6px 9px 3px; border-top: 1px solid #22374b; margin-top: 3px; font-size: 9.5px; color: #6f8ba0; }
+.message { margin-top: 6px; padding: 7px 10px; border: 1px solid #2b455b; border-radius: 8px; background: #07121ee6; font-size: 11px; line-height: 1.5; color: #b9cddc; }
+
+/* Frosted-glass dropdown: translucent tint, strong blur, light top edge. */
+.results {
+  position: relative;
+  border: 1px solid #ffffff1f;
+  background: linear-gradient(160deg, #1a3a55a6 0%, #0b1a2b8c 55%, #07121e99 100%);
+  backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: inset 0 1px 0 #ffffff26, inset 0 0 24px #8ed3e10d, 0 18px 48px #000a;
+  overflow: hidden;
+}
+.results::before { content: ""; position: absolute; inset: 0 0 auto; height: 1px; background: linear-gradient(90deg, transparent, #bfefff80, transparent); pointer-events: none; }
+.results > li[role="option"] { transition: background .12s, box-shadow .12s; }
+.results > li[aria-selected="true"] { background: linear-gradient(90deg, #8ed3e12e, #8ed3e10f); box-shadow: inset 0 0 0 1px #8ed3e133; }
+.results small { color: #a9c3d4; }
+.credit { border-top-color: #ffffff14; color: #8aa6b9; }

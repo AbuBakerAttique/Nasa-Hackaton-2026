@@ -18,3 +18,15 @@ export function locationErrorMessage(error: {code?: number}) {
   if (error.code === 3) return "Your device took too long to find a location. Check that Location Services are enabled and try again, or search for your town.";
   return "Your browser could not get a location from your device. Enable Location Services and try again, or search for your town.";
 }
+
+/**
+ * Read "lat, lon" typed into the place search, e.g. "52.52, 13.40" or "52.52 13.40".
+ * Returns null for anything that is not two numbers in range, so it is searched as a name.
+ */
+export function parseCoordinates(text: string): { lat: number; lon: number } | null {
+  const match = text.trim().match(/^(-?\d+(?:\.\d+)?)\s*[,;\s]\s*(-?\d+(?:\.\d+)?)$/);
+  if (!match) return null;
+  const lat = Number(match[1]), lon = Number(match[2]);
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
+  return { lat, lon };
+}

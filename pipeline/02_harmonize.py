@@ -17,6 +17,7 @@ from sklearn.metrics import mean_absolute_error as mae, r2_score as r2
 GRID = 0.25            # cell size in degrees
 BLOCK = 2.0            # region size used for the regional accuracy check
 TRAIN_END, TEST_START = 2021, 2022
+OVERLAP_END = 2025      # last year with both sensors; later years are VIIRS only (pipeline/07)
 OUT = pathlib.Path("data/out")
 OUT.mkdir(parents=True, exist_ok=True)
 KEYS = ["country", "clat", "clon", "year", "month"]
@@ -47,7 +48,7 @@ v = load("data/raw/viirs-snpp_*.csv", "viirs")
 
 # Fail before publishing outputs if an overlap year has no usable observations.
 for sensor, frame in [("MODIS", m), ("VIIRS", v)]:
-    absent = set(range(2012, 2026)) - set(frame.year)
+    absent = set(range(2012, OVERLAP_END + 1)) - set(frame.year)
     if absent:
         raise ValueError(f"{sensor}: missing usable overlap years {sorted(absent)}; rerun download")
 inputs = sorted(pathlib.Path("data/raw").glob("*.csv"))
@@ -70,7 +71,7 @@ modis = m.groupby(KEYS).agg(m_n=("frp", "size"), m_frp=("frp", "sum"), m_aqua=("
 viirs = v.groupby(KEYS).agg(v_n=("frp", "size"), v_frp=("frp", "sum")).reset_index()
 cells = modis.merge(viirs, on=KEYS, how="outer").fillna(0)
 
-overlap = cells[cells.year >= 2012]                  # years with both sensors
+overlap = cells[(cells.year >= 2012) & (cells.year <= OVERLAP_END)]   # years with both sensors
 seen = overlap[overlap.m_n > 0]                      # cell-months where MODIS saw something
 train, test = seen[seen.year <= TRAIN_END], seen[seen.year >= TEST_START]
 
@@ -105,7 +106,7 @@ ab = blocks(te_all.assign(est=np.where(te_all.m_n > 0, predict(te_all), 0) * upl
 
 report = {
     "grid_degrees": GRID,
-    "train_years": f"2012-{TRAIN_END}", "test_years": f"{TEST_START}-{int(cells.year.max())}",
+    "train_years": f"2012-{TRAIN_END}", "test_years": f"{TEST_START}-{OVERLAP_END}",
     "seen_cell_candidate_ratio": round(float(ratio), 3), "ml_candidate_unseen_cell_uplift": round(float(uplift), 3),
     "share_of_viirs_detections_where_modis_saw_nothing": round(float(1 - 1 / uplift), 3),
     "candidate_models_on_modis_seen_cell_months": {
@@ -172,6 +173,10 @@ report["intensity"] = {"frp_ratio": round(float(frp_ratio), 3),
                        "region_month_r2_raw_modis": round(float(r2(fb.v_frp, fb.m_frp)), 3),
                        "region_month_r2_fixed_ratio": round(float(r2(fb.v_frp, fb.est_frp)), 3),
                        "limitation": "Exploratory FRP aggregate comparison; different sensor pixel sizes and retrievals prevent interpretation as burned area or cumulative fire energy."}
+# The current year, if pipeline/07 fetched it: VIIRS only, partly provisional. Not used in validation.
+current = OUT / "current_year.json"
+if current.exists() and (cells.year > OVERLAP_END).any():
+    report["current_year"] = json.loads(current.read_text())
 (OUT / "report.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report, indent=2))
 

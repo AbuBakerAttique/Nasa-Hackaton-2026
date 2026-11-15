@@ -53,7 +53,8 @@ describe("Germany matches the prototype calendar on the project board", () => {
     cal: Record<"raw" | "harm" | "rawF" | "harmF", number[][]>;
   };
   const rows = loadCountry("Germany.json");
-  const range = { firstYear: index.firstYear, lastYear: index.lastYear };
+  // The prototype covers the complete archive years 2001-2025, not the current year.
+  const range = { firstYear: index.firstYear, lastYear: 2025 };
 
   it.each([
     ["raw", "count", "raw"],

@@ -16,7 +16,7 @@ export const STUDY_AREAS: readonly StudyArea[] = [
     id: "southern-europe",
     name: "Europe",
     region: "Europe",
-    targetYears: "2020–2025",
+    targetYears: "2020–2026",
     countryIds: [
       "Austria", "Bulgaria", "Croatia", "Czech_Republic", "France", "Germany", "Greece", "Hungary",
       "Italy", "Poland", "Portugal", "Romania", "Spain", "Sweden", "Turkey", "Ukraine",

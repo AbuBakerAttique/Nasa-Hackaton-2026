@@ -6,6 +6,7 @@ import { useMemo, useRef, useState } from "react";
 import { LocationSearch, type MapLocation } from "./LocationSearch";
 import workspace from "./ExplorerWorkspace.module.css";
 import { CalendarGrid, type MonthPick } from "@/components/CalendarGrid";
+import { ExportPanel } from "@/components/ExportPanel";
 import { FindingsPanel } from "@/components/FindingsPanel";
 import { FireMap, type DrawMode } from "@/components/FireMap";
 import { FireSciencePanel } from "@/components/FireSciencePanel";
@@ -89,14 +90,15 @@ export function FireCalendar({ index, view = "explore", initialSelection }: { in
 
   // Both records are built so they share one colour scale: switching then
   // shows the real difference instead of two tables each scaled to itself.
+  const observedUntil = index.current?.observedUntil;
   const tables = useMemo(() => {
     if (!rows) return null;
-    const range = { measure: "count" as const, firstYear, lastYear };
+    const range = { measure: "count" as const, firstYear, lastYear, observedUntil };
     return {
       corrected: buildTable(rows, { record: "corrected", ...range }),
       raw: buildTable(rows, { record: "raw", ...range }),
     };
-  }, [rows, firstYear, lastYear]);
+  }, [rows, firstYear, lastYear, observedUntil]);
   const max = tables ? Math.max(0, ...tables.corrected.values.flat(), ...tables.raw.values.flat()) : 0;
 
   // A picked month outside the chosen years no longer applies.
@@ -260,9 +262,10 @@ export function FireCalendar({ index, view = "explore", initialSelection }: { in
 
   return (
     <section id="explorer" className="explorer" aria-labelledby="calendar-heading">
-      <div className="section-heading">
+      {/* On the map view the heading is for screen readers only; the top bar carries the page link. */}
+      <div className={view === "explore" ? "sr-only" : "section-heading"}>
         <div><p className="eyebrow">01 / EXPLORE THE RECORD</p><h2 id="calendar-heading">{view === "statistics" ? "Statistics & methodology" : "Fire activity explorer"}</h2></div>
-        <a className={workspace.pageLink} href={view === "statistics" ? `/?${selectionQuery}` : `/statistics?${selectionQuery}`}>{view === "statistics" ? "← Back to map & calendar" : "View statistics →"}</a>
+        {view === "statistics" && <a className={workspace.pageLink} href={`/?${selectionQuery}`}>← Back to map & calendar</a>}
       </div>
 
       {view === "explore" && <div id="spatial-view" className={workspace.workspace}>
@@ -270,20 +273,13 @@ export function FireCalendar({ index, view = "explore", initialSelection }: { in
         <div className={workspace.topBar}>
         <div className={workspace.header}>
           <div><p className="eyebrow">FIRECHRONOS / SPATIAL EXPLORER</p><h2>Europe, in focus.</h2><p>Discover when and where satellite hotspots were observed.</p></div>
-          <span className={workspace.live}><span /> NASA FIRMS archive</span>
+          <span className={workspace.live}><span /> NASA FIRMS · to {index.current?.lastDate ?? index.lastYear}</span>
         </div>
         {filters}
-        <div className={workspace.topOptions}>            <details ref={optionsRef} className={workspace.filterDrawer} onKeyDown={event => { if (event.key === "Escape" && optionsRef.current) optionsRef.current.open = false; }}><summary>Search & map options</summary>
+        <div className={workspace.topOptions}>            <details ref={optionsRef} className={workspace.filterDrawer} onKeyDown={event => { if (event.key === "Escape" && optionsRef.current) optionsRef.current.open = false; }}><summary>Map options</summary>
             <div className={workspace.optionsPopover}>
-              <div className={workspace.optionsHeading}><h3>Explore your area</h3><button type="button" aria-label="Close search and map options" onClick={()=>{if(optionsRef.current) optionsRef.current.open=false;}}>×</button></div>
-              <div className={workspace.optionsGrid}><div className={workspace.searchSection}>
-            <LocationSearch onSelect={point => {
-              setLocation({...point, period: locationPeriod}); setSelectedCell(null); setDrawMode(null);
-              if (optionsRef.current) optionsRef.current.open = false;
-              setRegion({kind:"box", south: Math.max(-90,point.lat-.5), north:Math.min(90,point.lat+.5), west:Math.max(-180,point.lon-.5), east:Math.min(180,point.lon+.5)});
-            }} />
-            {location && <div className={workspace.locationNote}><strong>{location.label}</strong><p>{location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°</p><p>{sources.length === 0 ? "This location is outside the available fire archive. No fire assessment is available here." : "Showing the surrounding area. No dot means no retained detection in the selected period; it does not confirm there was no fire."}</p><button type="button" onClick={()=>{setLocation(null);setRegion(null);setStudyAreaId(DEFAULT_STUDY_AREA.id);}}>Back to Europe</button></div>}
-              </div><div className={workspace.displaySection}><h3>Map display</h3>
+              <div className={workspace.optionsHeading}><h3>Map options</h3><button type="button" aria-label="Close map options" onClick={()=>{if(optionsRef.current) optionsRef.current.open=false;}}>×</button></div>
+              <div className={workspace.optionsGrid}><div className={workspace.displaySection}><h3 className="sr-only">Map display</h3>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <div role="group" aria-labelledby="map-view-label" className="flex items-center gap-2">
             <span id="map-view-label" className="text-sm font-medium">
@@ -348,50 +344,28 @@ export function FireCalendar({ index, view = "explore", initialSelection }: { in
         </div>
               </div></div>
               <p className={workspace.optionsFootnote}>Select a calendar tile to update the map. Dots represent aggregated satellite detections.</p>
-            </div></details></div>
+            </div></details>
+            <a className={workspace.pageLink} href={`/statistics?${selectionQuery}`}>Statistics →</a></div>
         </div>
-        <dl className={workspace.quickMetrics} aria-label="Selected area and period statistics">
-          <div><dt>{record === "corrected" ? "Corrected detections" : "Raw detections"}</dt><dd>{quickMetrics ? Math.round(quickMetrics.detections).toLocaleString() : "—"}</dd><small>{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`} · {record}</small></div>
-          <div><dt>Grid cells with detections</dt><dd>{quickMetrics?.cells.toLocaleString() ?? "—"}</dd><small>0.25° cells in this selection</small></div>
-          <div><dt>Mean observed pixel FRP</dt><dd>{quickMetrics?.meanFrp == null ? "—" : `${quickMetrics.meanFrp.toFixed(1)} MW`}</dd><small>Raw timeline · MODIS to 2011, VIIRS since 2012</small></div>
-          <div><dt>Observed detections</dt><dd>{quickMetrics?.observedCount.toLocaleString() ?? "—"}</dd><small>Repeat satellite passes retained</small></div>
-        </dl>
         <div className={workspace.body}>
-          <aside className={workspace.sidebar} aria-label="Explore map controls">
-            <div className={workspace.calendarIntro}><p className="eyebrow">SELECT A MONTH → SEE IT ON THE MAP</p><h3>Your fire calendar</h3><p>Each coloured tile opens that month’s satellite record.</p></div>
-      <div className={workspace.calendarPanel} aria-live="polite" aria-busy={data.status === "loading"}>
-        <div className="panel-heading"><div><p className="eyebrow">THE BURNING CALENDAR</p><h3>Fire detections per month</h3></div><span className="text-xs text-muted">{firstYear} — {lastYear}</span></div>
-        <div className="calendar-key"><span>Less</span><span className="heat-ramp" /><span>More detections</span>{record === "corrected" && firstYear < VIIRS_FIRST_YEAR && <><span className="estimate-key" /><span>Estimated before 2012</span></>}<span className="ml-auto">Select a month to explore it</span></div>
-        {data.status === "loading" && <p className="text-muted">Loading {sourceNames}…</p>}
-        {data.status === "error" && (
-          <p role="alert" className="rounded-md border border-accent px-3 py-2 text-accent">
-            {data.message}
-          </p>
-        )}
-        {tables && (
-          <CalendarGrid
-            table={tables[record]}
-            areaName={areaName}
-            max={max}
-            selected={month}
-            onSelect={(pick) =>
-              setPicked(month && month.year === pick.year && month.month === pick.month ? null : pick)
-            }
-          />
-        )}
-      </div>
-
-
-          </aside>
           <div className={workspace.mapColumn}>
-            <div className={workspace.mapHeading}><span>{areaName}</span><span>{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</span>
+        <div className={workspace.mapFrame}>
+            <div className={workspace.mapSearch}>
+              <LocationSearch onSelect={point => {
+                setLocation({...point, period: locationPeriod}); setSelectedCell(null); setDrawMode(null);
+                setRegion({kind:"box", south: Math.max(-90,point.lat-.5), north:Math.min(90,point.lat+.5), west:Math.max(-180,point.lon-.5), east:Math.min(180,point.lon+.5)});
+              }}
+              onClear={() => { if (!location) return; setLocation(null); setRegion(null); setStudyAreaId(DEFAULT_STUDY_AREA.id); }} />
+              {/* Only an out-of-archive place gets a note; the × in the search bar clears the place. */}
+              {location && sources.length === 0 && <p role="status" className={workspace.placeNote}>Outside the fire archive: no fire assessment here.</p>}
+            </div>
+            <div className={workspace.mapHeading}><span title={areaName}>{areaName}</span><span>{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</span>
               <button type="button" className={workspace.nextHotspot} disabled={!rankedHotspots.length} title="Browse grid cells in descending detection activity" onClick={() => {
                 const current = rankedHotspots.findIndex(cell=>cell.lat===selectedCell?.lat && cell.lon===selectedCell?.lon);
                 const next = rankedHotspots[(current+1)%rankedHotspots.length];
                 setSelectedCell({lat:next.lat,lon:next.lon});
               }}>Next hotspot →</button>
             </div>
-        <div className={workspace.mapFrame}>
           <FireMap
             animateEntry
             darkMode
@@ -411,33 +385,75 @@ export function FireCalendar({ index, view = "explore", initialSelection }: { in
               setDrawMode(null);
             }}
             weatherMarker={location ? {lat: location.lat, lon: location.lon, towards: null, label: location.label} : null}
+            cellPopup={selectedCell && cellInfo ? (
+              <section className={workspace.cellPopup} role="dialog" aria-modal="false" aria-labelledby="cell-dialog-title" onKeyDown={event => { if (event.key === "Escape") setSelectedCell(null); }}>
+                <div className={workspace.popupHead}>
+                  <h3 id="cell-dialog-title" aria-live="polite" title={placeName.status === "ready" ? (placeName.text ?? undefined) : undefined}>
+                    {placeName.status === "ready"
+                      ? (placeName.text ?? "No town nearby")
+                      : placeName.status === "loading"
+                        ? "Finding nearest town…"
+                        : "Grid cell"}
+                  </h3>
+                  <button type="button" autoFocus onClick={() => setSelectedCell(null)} aria-label="Close grid cell information">×</button>
+                </div>
+                <p className={workspace.popupType}><span aria-hidden="true" />Presumed vegetation fire <small>NASA type 0</small></p>
+                <ul className={workspace.popupFacts}>
+                  <li>{cellInfo.count.toLocaleString(undefined,{maximumFractionDigits:1})} {record} detections{cellInfo.estimated ? " (estimated)" : ""} · {month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</li>
+                  <li>MODIS {cellInfo.modis.toLocaleString()} · VIIRS S-NPP {(month?.year ?? lastYear) < VIIRS_FIRST_YEAR ? "n/a before 2012" : cellInfo.viirs.toLocaleString()}</li>
+                </ul>
+                <p className={workspace.popupFrp}>FRP: {cellInfo.frp.toLocaleString(undefined,{maximumFractionDigits:1})} MW <small>summed pixel FRP</small></p>
+                <p className={workspace.popupCoords}>Lat: {selectedCell.lat.toFixed(2)}, Lon: {selectedCell.lon.toFixed(2)} · 0.25° cell</p>
+                <details className={workspace.popupMore}><summary>Cause & notes</summary>
+                  <p>The cause is unknown from these satellite records. NASA classifies this hotspot as a presumed vegetation fire; that does not say whether lightning, an accident, deliberate burning or something else started it. Confirming a cause needs local incident reports.</p>
+                  <p>Repeated detections are retained. FRP sums are experimental and do not measure total fire energy. Dots are grid centres, not exact fire locations. Nearest town: <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0), towns of 15,000+ people.</p>
+                </details>
+              </section>
+            ) : null}
           />
-            {selectedCell && cellInfo && <section className={`${workspace.cellInfo} ${workspace.cellDialog}`} role="dialog" aria-modal="false" aria-labelledby="cell-dialog-title" onKeyDown={event => { if (event.key === "Escape") setSelectedCell(null); }}>
-                <div className={workspace.cellTitle}><h3 id="cell-dialog-title">Selected hotspot grid cell</h3><button type="button" autoFocus onClick={() => setSelectedCell(null)} aria-label="Close grid cell information">×</button></div>
-                <p className={workspace.cellPlace} aria-live="polite">
-                  {placeName.status === "ready"
-                    ? (placeName.text ?? "No town nearby")
-                    : placeName.status === "loading"
-                      ? "Finding the nearest town…"
-                      : placeName.status === "error"
-                        ? "Place name unavailable"
-                        : null}
-                </p>
-                <p>{selectedCell.lat.toFixed(3)}° latitude · {selectedCell.lon.toFixed(3)}° longitude · {month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</p>
-                <dl className={workspace.cellMetrics}>
-                  <div><dt>{record === "corrected" ? "Corrected" : "Raw"} detections</dt><dd>{cellInfo.count.toLocaleString(undefined,{maximumFractionDigits:1})}{cellInfo.estimated ? " (estimated)" : ""}</dd></div>
-                  <div><dt>NASA hotspot type</dt><dd>0 · Presumed vegetation fire</dd></div>
-                  <div><dt>Observed MODIS</dt><dd>{cellInfo.modis.toLocaleString()} detections</dd></div>
-                  <div><dt>Observed VIIRS S-NPP</dt><dd>{(month?.year ?? lastYear) < VIIRS_FIRST_YEAR ? "Not available before 2012" : `${cellInfo.viirs.toLocaleString()} detections`}</dd></div>
-                  <div><dt>Summed pixel FRP · {record}</dt><dd>{cellInfo.frp.toLocaleString(undefined,{maximumFractionDigits:1})} MW</dd></div>
-                  <div><dt>Day / night</dt><dd>Not retained in monthly archive</dd></div>
-                </dl>
-                <div className={workspace.causeNote}><h4>Why did this happen?</h4><p>The cause is unknown from these satellite records. NASA classifies this hotspot as a presumed vegetation fire. That classification does not tell us whether lightning, an accidental ignition, deliberate burning, or another cause started it. Confirming a cause requires local incident reports or other evidence.</p><p>Wind can influence the movement of an existing fire, and dry conditions can help vegetation burn. Weather context alone cannot confirm the cause of this detection.</p></div>
-                <p>0.25° grid cell. Repeated detections are retained. FRP sums are experimental and do not measure total fire energy. Sensor counts are separate observations for the selected period. Nearest town: <a href="https://www.geonames.org/" target="_blank" rel="noreferrer">GeoNames</a> (CC BY 4.0), towns of 15,000+ people.</p>            </section>}
         </div>
-            <p className={workspace.cellHint}>Click a fire dot to inspect its grid-cell details. Dots show aggregated grid centres, not exact fire locations.</p>
-            <div className={workspace.legend}><span className="heat-ramp" /><span>Fewer detections</span><span>More detections</span><span className={workspace.resolution}>0.25° spatial grid</span></div>
+            <div className={workspace.legend}><span className="heat-ramp" /><span>Fewer</span><span>More detections</span><span className={workspace.resolution}>0.25° grid · click a dot for details · dots are grid centres, not exact fire locations</span></div>
           </div>
+          <aside className={workspace.sidebar} aria-label="Statistics and fire calendar">
+        <dl className={workspace.quickMetrics} aria-label="Selected area and period statistics">
+          <div><dt>{record === "corrected" ? "Corrected detections" : "Raw detections"}</dt><dd>{quickMetrics ? Math.round(quickMetrics.detections).toLocaleString() : "—"}</dd><small>{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`} · {record}</small></div>
+          <div><dt>Grid cells with detections</dt><dd>{quickMetrics?.cells.toLocaleString() ?? "—"}</dd><small>0.25° cells in this selection</small></div>
+          <div><dt>Mean observed pixel FRP</dt><dd>{quickMetrics?.meanFrp == null ? "—" : `${quickMetrics.meanFrp.toFixed(1)} MW`}</dd><small>Raw timeline · MODIS to 2011, VIIRS since 2012</small></div>
+          <div><dt>Observed detections</dt><dd>{quickMetrics?.observedCount.toLocaleString() ?? "—"}</dd><small>Repeat satellite passes retained</small></div>
+        </dl>
+      <div className={workspace.calendarPanel} aria-live="polite" aria-busy={data.status === "loading"}>
+        <div className="panel-heading"><div><p className="eyebrow">THE BURNING CALENDAR</p><h3>Fire detections per month</h3></div><span className="text-xs text-muted">{firstYear} — {lastYear}</span></div>
+        <div className="calendar-key"><span>Less</span><span className="heat-ramp" /><span>More detections</span>{record === "corrected" && firstYear < VIIRS_FIRST_YEAR && <><span className="estimate-key" /><span>Estimated before 2012</span></>}<span className="ml-auto">Select a month to explore it</span></div>
+        {data.status === "loading" && <p className="text-muted">Loading {sourceNames}…</p>}
+        {data.status === "error" && (
+          <p role="alert" className="rounded-md border border-accent px-3 py-2 text-accent">
+            {data.message}
+          </p>
+        )}
+        {tables && (
+          <CalendarGrid
+            table={tables[record]}
+            areaName={areaName}
+            max={max}
+            selected={month}
+            onSelect={(pick) =>
+              setPicked(month && month.year === pick.year && month.month === pick.month ? null : pick)
+            }
+            current={index.current}
+          />
+        )}
+        {tables && index.current && lastYear === index.current.year && (
+          <p className="mt-2 text-xs text-muted">
+            {index.current.year} is a part year: VIIRS S-NPP data to {index.current.lastDate}, from the FIRMS API.
+            From {index.current.provisionalFrom} it is near-real-time data, which NASA reprocesses later (dashed outline).
+            Months marked – are not complete yet. Year statistics and trends use complete years only.
+          </p>
+        )}
+        {tables && rows && (
+          <ExportPanel table={tables[record]} rows={rows} areaName={areaName} max={max} current={index.current} />
+        )}
+      </div>
+          </aside>
         </div>
       </div>
       }
@@ -490,6 +506,7 @@ export function FireCalendar({ index, view = "explore", initialSelection }: { in
       {tables && (
         <div className="mt-6">
           <FindingsPanel table={tables[record]} month={month} />
+          {rows && <ExportPanel table={tables[record]} rows={rows} areaName={areaName} max={max} current={index.current} />}
         </div>
       )}
 

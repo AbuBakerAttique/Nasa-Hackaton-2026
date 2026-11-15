@@ -2,7 +2,7 @@
 //
 //   data/out/cells/{Country}.json  ->  web/public/data/cells/{Country}.json
 //   data/out/report.json           ->  web/public/data/report.json
-//   (written here)                 ->  web/public/data/index.json
+//   (written here)                 ->  web/public/data/index.json  (with the current year's coverage)
 //
 // Run it from web/ with:  npm run copy-data
 // Run it again every time the pipeline has been rerun, then commit web/public/data/.
@@ -60,9 +60,10 @@ if (actualViirs <= 0 || actualViirs !== report.test_totals.actual_viirs || actua
   fail("validation report does not match source detections; existing app data preserved. Rerun the pipeline.");
 }
 
-// Everything in the target folder is generated, so start clean.
-// This removes files of countries the pipeline no longer produces.
-await rm(targetDir, { recursive: true, force: true });
+// The country files are all generated here, so start them clean. This removes
+// files of countries the pipeline no longer produces. Other files in the folder
+// (places.json, from scripts/build-places.mjs) are kept.
+await rm(path.join(targetDir, "cells"), { recursive: true, force: true });
 await mkdir(path.join(targetDir, "cells"), { recursive: true });
 
 const countries = [];
@@ -103,6 +104,21 @@ for (const file of files) {
 await copyFile(sourceReport, path.join(targetDir, "report.json"));
 
 const index = { firstYear, lastYear, countries };
+
+// The current year (pipeline/07_download_current.py): VIIRS only, recent months provisional.
+// observedUntil is the last complete month; the month of lastDate counts only if lastDate is its last day.
+const current = report.current_year;
+if (current && current.year === lastYear) {
+  const last = new Date(`${current.last_date}T00:00:00Z`);
+  const monthEnds = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth() + 1, 0)).getUTCDate() === last.getUTCDate();
+  const month = last.getUTCMonth() + (monthEnds ? 1 : 0);
+  index.current = {
+    year: current.year,
+    lastDate: current.last_date,
+    provisionalFrom: current.provisional_from,
+    observedUntil: month >= 1 ? { year: current.year, month } : { year: current.year - 1, month: 12 },
+  };
+}
 await writeFile(path.join(targetDir, "index.json"), JSON.stringify(index, null, 2) + "\n");
 
 const cases = path.join(sourceDir, "case-studies");

@@ -41,6 +41,5 @@ export function CloudTransition({ phase, onCovered, onFinished }: {phase:'cover'
     <div className={styles.cloudPhoto} aria-hidden="true"/>
     <div className={styles.shade} aria-hidden="true"/>
     <Rain phase={phase}/>
-    <div className={styles.caption}><span>Entering Europe…</span></div>
   </div>;
 }

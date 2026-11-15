@@ -67,4 +67,17 @@ export interface DataIndex {
   firstYear: number;
   lastYear: number;
   countries: CountryEntry[];
+  /** The current, unfinished year, when the pipeline fetched it (pipeline/07). */
+  current?: CurrentYear;
+}
+
+/** Coverage of the current year: VIIRS S-NPP only, the recent part provisional. */
+export interface CurrentYear {
+  year: number;
+  /** Last day with data, YYYY-MM-DD. */
+  lastDate: string;
+  /** First day of near-real-time (provisional) data, YYYY-MM-DD. */
+  provisionalFrom: string;
+  /** Last month with complete data. Later months hold no data yet. */
+  observedUntil: { year: number; month: number };
 }

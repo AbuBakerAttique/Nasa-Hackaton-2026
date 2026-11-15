@@ -100,5 +100,22 @@ export function EChart({ option, label, className }: { option: EChartsCoreOption
     chartRef.current?.setOption(option, { notMerge: true });
   }, [option]);
 
-  return <div ref={container} role="img" aria-label={label} className={className ?? "h-64 w-full"} />;
+  // Saves the chart as it is drawn now, at double resolution, on a white background.
+  const download = () => {
+    const url = chartRef.current?.getDataURL({ type: "png", pixelRatio: 2, backgroundColor: "#ffffff" });
+    if (!url) return;
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60) || "chart"}.png`;
+    a.click();
+  };
+
+  return (
+    <div>
+      <div ref={container} role="img" aria-label={label} className={className ?? "h-64 w-full"} />
+      <button type="button" onClick={download} className="mt-1 text-xs text-muted underline hover:text-foreground">
+        Download chart (PNG)
+      </button>
+    </div>
+  );
 }

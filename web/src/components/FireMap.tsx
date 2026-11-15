@@ -6,12 +6,21 @@
 // appears, and the page still works if it cannot start.
 
 import "maplibre-gl/dist/maplibre-gl.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import type { TerraDraw } from "terra-draw";
 import { snapToGrid, type Bounds, type SquareValue } from "@/lib/map";
+import styles from "./FireMap.module.css";
 import type { LonLat } from "@/lib/region";
 import { observationGeoJSON, type Observation } from "@/lib/observations";
+
+/** Targeting reticle shown over a hotspot dot; the centre of the 32 px image is the click point. */
+const RETICLE_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+<g fill="none" stroke-linecap="round"><path d="M4 11V4h7M21 4h7v7M28 21v7h-7M11 28H4v-7" stroke="#06101a" stroke-width="4"/>
+<path d="M4 11V4h7M21 4h7v7M28 21v7h-7M11 28H4v-7" stroke="#ff9a52" stroke-width="2"/>
+<circle cx="16" cy="16" r="6" stroke="#06101a" stroke-width="3.5"/><circle cx="16" cy="16" r="6" stroke="#8ee6ff" stroke-width="1.5"/></g>
+<circle cx="16" cy="16" r="2" fill="#fff" stroke="#06101a" stroke-width="1"/></svg>`;
+const RETICLE_CURSOR = `url("data:image/svg+xml,${encodeURIComponent(RETICLE_SVG)}") 16 16, crosshair`;
 
 /** OpenFreeMap: free vector tiles, no key or account needed. */
 const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
@@ -102,7 +111,10 @@ export function FireMap({
   selectedCell = null,
   onCellSelect,
   animateEntry = false,
+  cellPopup = null,
 }: {
+  /** Shown next to the selected cell's dot, following it as the map moves. */
+  cellPopup?: ReactNode;
   animateEntry?: boolean;
   darkMode?: boolean;
   selectedCell?: {lat:number;lon:number} | null;
@@ -218,7 +230,7 @@ export function FireMap({
             const properties = event.features?.[0]?.properties;
             if (typeof properties?.lat === "number" && typeof properties.lon === "number") cellClick.current?.(properties.lat, properties.lon);
           });
-          map.on("mouseenter", "squares", () => { if (map && !pickRef.current && !drawing.current) map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseenter", "squares", () => { if (map && !pickRef.current && !drawing.current) map.getCanvas().style.cursor = RETICLE_CURSOR; });
           map.on("mouseleave", "squares", () => { if (map) map.getCanvas().style.cursor = pickRef.current ? "crosshair" : ""; });
           map.addSource("selected-cell", {type:"geojson",data:hotspotDots([],1)});
           map.addLayer({id:"selected-cell",type:"circle",source:"selected-cell",paint:{"circle-radius":9,"circle-color":"rgba(0,0,0,0)","circle-stroke-color":"#b9f4ff","circle-stroke-width":2}});
@@ -317,6 +329,27 @@ export function FireMap({
     mapRef.current?.getSource<GeoJSONSource>("selected-cell")?.setData(hotspotDots(selectedCell ? [{...selectedCell,value:1}] : [],1));
   }, [ready, selectedCell]);
 
+  // Screen position of the selected cell, so its popup sits beside the dot.
+  const [anchor, setAnchor] = useState<{key:string;x:number;y:number;w:number;h:number} | null>(null);
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map || !selectedCell) return;
+    const key = `${selectedCell.lat},${selectedCell.lon}`;
+    const place = () => {
+      const point = map.project([snapToGrid(selectedCell.lon), snapToGrid(selectedCell.lat)]);
+      const box = map.getContainer();
+      setAnchor({key, x: point.x, y: point.y, w: box.clientWidth, h: box.clientHeight});
+    };
+    const frame = requestAnimationFrame(place);
+    map.on("move", place);
+    map.on("resize", place);
+    return () => { cancelAnimationFrame(frame); map.off("move", place); map.off("resize", place); };
+  }, [ready, selectedCell]);
+  const popupAnchor = selectedCell && anchor?.key === `${selectedCell.lat},${selectedCell.lon}` ? anchor : null;
+  const popupVisible = popupAnchor && popupAnchor.x >= 0 && popupAnchor.x <= popupAnchor.w && popupAnchor.y >= 0 && popupAnchor.y <= popupAnchor.h;
+  // Above the dot, or below it when too close to the top; kept inside the map sideways.
+  const popupBelow = popupAnchor ? popupAnchor.y < 260 : false;
+
   // Show the chosen region's outline.
   useEffect(() => {
     if (!ready) return;
@@ -373,7 +406,7 @@ export function FireMap({
   }
 
   return (
-    <div className="relative">
+    <div className={`relative ${styles.map}`}>
       <div
         ref={container}
         role="region"
@@ -384,6 +417,19 @@ export function FireMap({
         <button type="button" aria-pressed={!globe} onClick={() => setGlobe(false)} className={`rounded px-3 py-1.5 text-xs font-medium ${!globe ? "bg-accent text-background" : "hover:bg-muted/20"}`}>2D map</button>
         <button type="button" aria-pressed={globe} onClick={() => setGlobe(true)} className={`rounded px-3 py-1.5 text-xs font-medium ${globe ? "bg-accent text-background" : "hover:bg-muted/20"}`}>Rotatable globe</button>
       </div>
+      {cellPopup && popupAnchor && (
+        <div
+          className="fire-cell-popup absolute z-20"
+          data-below={popupBelow ? "true" : undefined}
+          data-offscreen={popupVisible ? undefined : "true"}
+          style={{
+            left: Math.min(Math.max(popupAnchor.x, 160), Math.max(160, popupAnchor.w - 160)),
+            top: popupAnchor.y,
+          }}
+        >
+          {cellPopup}
+        </div>
+      )}
       {globe && <p className="pointer-events-none absolute bottom-3 left-3 z-10 rounded bg-background/90 px-2 py-1 text-xs text-muted">Drag to rotate · Wheel or pinch to zoom</p>}
     </div>
   );

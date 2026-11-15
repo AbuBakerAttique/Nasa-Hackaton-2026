@@ -1,9 +1,9 @@
 // The burning calendar: one row per year, one column per month, coloured by
 // fire activity. Only draws what lib/calendar.ts calculated.
 
-import { isEstimated, tableYears, yearTotals, type CalendarTable } from "@/lib/calendar";
+import { isCompleteYear, isEstimated, isObserved, tableYears, yearTotals, type CalendarTable } from "@/lib/calendar";
 import { MONTH_NAMES, formatCell, formatTotal, heatColour, monthName } from "@/lib/format";
-import { VIIRS_FIRST_YEAR } from "@/lib/types";
+import { VIIRS_FIRST_YEAR, type CurrentYear } from "@/lib/types";
 
 const UNIT = { count: "detections", frp: "MW of heat output" } as const;
 
@@ -19,6 +19,7 @@ export function CalendarGrid({
   max,
   selected,
   onSelect,
+  current,
 }: {
   table: CalendarTable;
   /** Name of the area, for the caption and cell descriptions. */
@@ -29,7 +30,12 @@ export function CalendarGrid({
   selected?: MonthPick | null;
   /** Makes each month a button. Without it the calendar is a plain table. */
   onSelect?: (pick: MonthPick) => void;
+  /** Coverage of the current, unfinished year: marks provisional and not-yet-complete months. */
+  current?: CurrentYear;
 }) {
+  // Near-real-time months of the current year: provisional, NASA reprocesses them later.
+  const provisionalMonth = current ? Number(current.provisionalFrom.slice(5, 7)) : 13;
+  const isProvisional = (year: number, month: number) => current?.year === year && month >= provisionalMonth;
   const years = tableYears(table);
   const totals = yearTotals(table);
   const top = max ?? Math.max(0, ...table.values.flat());
@@ -71,26 +77,37 @@ export function CalendarGrid({
                   {estimated && <span className="sr-only"> (estimated)</span>}
                 </th>
                 {months.map((value, m) => {
-                  const colour = heatColour(value, top);
-                  const description = `${monthName(m + 1, true)} ${year}: ${formatTotal(value)} ${unit}${estimated ? " (estimated)" : ""}`;
+                  const observed = isObserved(table, year, m + 1);
+                  const provisional = observed && isProvisional(year, m + 1);
+                  const colour = observed ? heatColour(value, top) : null;
+                  const note = estimated ? " (estimated)" : provisional ? " (provisional)" : "";
+                  const description = observed
+                    ? `${monthName(m + 1, true)} ${year}: ${formatTotal(value)} ${unit}${note}`
+                    : `${monthName(m + 1, true)} ${year}: not complete yet${current ? `, data to ${current.lastDate}` : ""}`;
                   const isSelected = selected?.year === year && selected.month === m + 1;
                   return (
                     <td
                       key={m}
                       title={description}
                       data-estimated={estimated || undefined}
+                      data-provisional={provisional || undefined}
+                      data-unobserved={!observed || undefined}
                       data-selected={isSelected || undefined}
                       className={
                         "h-7 border border-background p-0 text-center" +
                         (isSelected
                           ? " outline-2 -outline-offset-2 outline-foreground"
-                          : estimated
+                          : estimated || provisional
                             ? " outline-1 -outline-offset-2 outline-dashed outline-muted"
-                            : "")
+                            : !observed
+                              ? " text-muted"
+                              : "")
                       }
                       style={colour ?? undefined}
                     >
-                      {onSelect ? (
+                      {!observed ? (
+                        <span aria-label={description}>–</span>
+                      ) : onSelect ? (
                         <button
                           type="button"
                           aria-label={description}
@@ -106,7 +123,11 @@ export function CalendarGrid({
                     </td>
                   );
                 })}
-                <td className="pl-2 text-right font-semibold">{formatTotal(totals[y])}</td>
+                <td className="pl-2 text-right font-semibold" title={isCompleteYear(table, year) ? undefined : `Part year${current ? `, data to ${current.lastDate}` : ""}`}>
+                  {formatTotal(totals[y])}
+                  {!isCompleteYear(table, year) && <span aria-hidden="true">*</span>}
+                  {!isCompleteYear(table, year) && <span className="sr-only"> (part year)</span>}
+                </td>
               </tr>
             );
           })}

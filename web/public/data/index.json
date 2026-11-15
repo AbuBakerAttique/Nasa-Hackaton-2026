@@ -1,12 +1,12 @@
 {
   "firstYear": 2001,
-  "lastYear": 2025,
+  "lastYear": 2026,
   "countries": [
     {
       "id": "Austria",
       "name": "Austria",
       "file": "Austria.json",
-      "rows": 2089,
+      "rows": 2219,
       "bounds": [
         9.495,
         46.255,
@@ -18,7 +18,7 @@
       "id": "Bulgaria",
       "name": "Bulgaria",
       "file": "Bulgaria.json",
-      "rows": 19302,
+      "rows": 19709,
       "bounds": [
         22.255,
         40.995,
@@ -30,7 +30,7 @@
       "id": "Croatia",
       "name": "Croatia",
       "file": "Croatia.json",
-      "rows": 7247,
+      "rows": 7517,
       "bounds": [
         13.495,
         42.255,
@@ -42,7 +42,7 @@
       "id": "Czech_Republic",
       "name": "Czech Republic",
       "file": "Czech_Republic.json",
-      "rows": 4304,
+      "rows": 4442,
       "bounds": [
         11.995,
         48.495,
@@ -54,7 +54,7 @@
       "id": "France",
       "name": "France",
       "file": "France.json",
-      "rows": 30626,
+      "rows": 32410,
       "bounds": [
         -5.005,
         41.255,
@@ -66,7 +66,7 @@
       "id": "Germany",
       "name": "Germany",
       "file": "Germany.json",
-      "rows": 23292,
+      "rows": 24866,
       "bounds": [
         5.755,
         47.255,
@@ -78,7 +78,7 @@
       "id": "Greece",
       "name": "Greece",
       "file": "Greece.json",
-      "rows": 16937,
+      "rows": 17365,
       "bounds": [
         19.495,
         34.755,
@@ -90,7 +90,7 @@
       "id": "Hungary",
       "name": "Hungary",
       "file": "Hungary.json",
-      "rows": 11113,
+      "rows": 11516,
       "bounds": [
         15.995,
         45.495,
@@ -102,7 +102,7 @@
       "id": "Italy",
       "name": "Italy",
       "file": "Italy.json",
-      "rows": 47773,
+      "rows": 49835,
       "bounds": [
         6.755,
         35.495,
@@ -114,7 +114,7 @@
       "id": "Poland",
       "name": "Poland",
       "file": "Poland.json",
-      "rows": 15952,
+      "rows": 16552,
       "bounds": [
         13.995,
         48.995,
@@ -126,7 +126,7 @@
       "id": "Portugal",
       "name": "Portugal",
       "file": "Portugal.json",
-      "rows": 13627,
+      "rows": 14082,
       "bounds": [
         -29.005,
         32.495,
@@ -138,7 +138,7 @@
       "id": "Romania",
       "name": "Romania",
       "file": "Romania.json",
-      "rows": 37372,
+      "rows": 38479,
       "bounds": [
         20.255,
         43.495,
@@ -150,7 +150,7 @@
       "id": "Spain",
       "name": "Spain",
       "file": "Spain.json",
-      "rows": 47169,
+      "rows": 49028,
       "bounds": [
         -18.245,
         27.495,
@@ -162,7 +162,7 @@
       "id": "Sweden",
       "name": "Sweden",
       "file": "Sweden.json",
-      "rows": 5702,
+      "rows": 5893,
       "bounds": [
         10.995,
         55.255,
@@ -174,7 +174,7 @@
       "id": "Turkey",
       "name": "Turkey",
       "file": "Turkey.json",
-      "rows": 79463,
+      "rows": 82196,
       "bounds": [
         25.495,
         35.755,
@@ -186,7 +186,7 @@
       "id": "Ukraine",
       "name": "Ukraine",
       "file": "Ukraine.json",
-      "rows": 140342,
+      "rows": 144909,
       "bounds": [
         21.995,
         44.255,
@@ -194,5 +194,14 @@
         52.505
       ]
     }
-  ]
+  ],
+  "current": {
+    "year": 2026,
+    "lastDate": "2026-11-02",
+    "provisionalFrom": "2026-08-01",
+    "observedUntil": {
+      "year": 2026,
+      "month": 10
+    }
+  }
 }

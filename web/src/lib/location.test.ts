@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { currentLocation, locationErrorMessage } from './location';
+import { currentLocation, locationErrorMessage, parseCoordinates } from './location';
 
 describe('current location', () => {
   it('uses the device position without fabricating a fallback', async () => {
@@ -22,5 +22,20 @@ describe('current location', () => {
     await expect(currentLocation({getCurrentPosition})).rejects.toMatchObject({code:1});
     expect(getCurrentPosition).toHaveBeenCalledOnce();
     expect(locationErrorMessage({code:1})).toContain('site settings');
+  });
+});
+
+describe("parseCoordinates", () => {
+  it("reads comma, semicolon and space separated pairs", () => {
+    expect(parseCoordinates("52.52, 13.40")).toEqual({ lat: 52.52, lon: 13.4 });
+    expect(parseCoordinates(" -33.9;18.4 ")).toEqual({ lat: -33.9, lon: 18.4 });
+    expect(parseCoordinates("48 2")).toEqual({ lat: 48, lon: 2 });
+  });
+  it("rejects names, single numbers and out-of-range values", () => {
+    expect(parseCoordinates("Berlin")).toBeNull();
+    expect(parseCoordinates("52.5")).toBeNull();
+    expect(parseCoordinates("91, 10")).toBeNull();
+    expect(parseCoordinates("10, 181")).toBeNull();
+    expect(parseCoordinates("A1 road 12")).toBeNull();
   });
 });

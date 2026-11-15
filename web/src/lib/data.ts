@@ -87,6 +87,7 @@ export function parseIndex(value: {
   firstYear: number;
   lastYear: number;
   countries: { id: string; name: string; file: string; rows: number; bounds: number[] }[];
+  current?: DataIndex["current"];
 }): DataIndex {
   return {
     ...value,

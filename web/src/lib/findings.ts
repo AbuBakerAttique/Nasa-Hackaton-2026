@@ -4,7 +4,9 @@
 import {
   compareYear,
   isEstimated,
+  lastCompleteYear,
   mainSeason,
+  observedSeries,
   rankMonth,
   tableTotal,
   typicalYear,
@@ -78,9 +80,11 @@ export function describeTable(table: CalendarTable): TableFindings {
       ? `${w.year}${estimated(w.year)}, with ${formatTotal(w.total)} ${unit}. A typical year has none.`
       : `${w.year}${estimated(w.year)}, with ${w.timesTypical.toFixed(1)} times a typical year: ${formatTotal(w.total)} ${unit} against a median of ${formatTotal(typical)}.`;
 
-  const c = compareYear(table, table.lastYear);
+  // The latest complete year: a part year (the current one) is not compared with whole years.
+  const latestYear = lastCompleteYear(table);
+  const c = latestYear === null ? null : compareYear(table, latestYear);
   const latest =
-    c.change === null
+    c === null || c.change === null
       ? null
       : `${c.year}: ${formatTotal(c.total)} ${unit}, ${describeChange(c.change)} a typical year${c.year === w.year ? ". It is the worst year in the range" : ""}.`;
 
@@ -119,5 +123,5 @@ export function describeMonth(table: CalendarTable, year: number, month: number)
 }
 
 function otherValues(table: CalendarTable, year: number, month: number): number[] {
-  return table.values.filter((_, i) => i !== year - table.firstYear).map((row) => row[month - 1]);
+  return observedSeries(table, month).filter((v) => v.year !== year).map((v) => v.value);
 }

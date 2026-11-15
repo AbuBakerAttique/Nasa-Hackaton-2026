@@ -1,0 +1,5 @@
+/* No grab/grabbing hand on the map: dragging still pans, with the normal arrow.
+   Over a hotspot dot FireMap sets a reticle cursor on the canvas itself. */
+.map :global(.maplibregl-canvas-container.maplibregl-interactive),
+.map :global(.maplibregl-canvas-container.maplibregl-interactive:active),
+.map :global(.maplibregl-canvas-container.maplibregl-interactive.maplibregl-track-pointer) { cursor: default; }

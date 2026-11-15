@@ -23,6 +23,17 @@ export interface TableOptions {
   firstYear: number;
   /** Last year to include. */
   lastYear: number;
+  /**
+   * The last month with complete data, when the record ends part way through a
+   * year (the current year). Later months hold no data yet, not zero fire.
+   * Omit when every month of every year is complete.
+   */
+  observedUntil?: YearMonth | null;
+}
+
+export interface YearMonth {
+  year: number;
+  month: number;
 }
 
 /** A year-by-month table. values[y][m] is year firstYear + y, month m + 1. */
@@ -33,6 +44,8 @@ export interface CalendarTable {
   lastYear: number;
   /** One row per year, each with 12 month values. */
   values: number[][];
+  /** See TableOptions.observedUntil. null: all months are complete. */
+  observedUntil: YearMonth | null;
 }
 
 /** The value of one row in the chosen record and measure. */
@@ -56,6 +69,7 @@ export function isEstimated(year: number): boolean {
  */
 export function buildTable(rows: readonly CellRow[], options: TableOptions): CalendarTable {
   const { record, measure, firstYear, lastYear } = options;
+  const observedUntil = options.observedUntil ?? null;
   if (!Number.isInteger(firstYear) || !Number.isInteger(lastYear) || firstYear > lastYear) {
     throw new RangeError(`Invalid year range ${firstYear} to ${lastYear}.`);
   }
@@ -66,7 +80,38 @@ export function buildTable(rows: readonly CellRow[], options: TableOptions): Cal
     if (year < firstYear || year > lastYear || month < 1 || month > 12) continue;
     values[year - firstYear][month - 1] += rowValue(row, record, measure);
   }
-  return { record, measure, firstYear, lastYear, values };
+  return { record, measure, firstYear, lastYear, values, observedUntil };
+}
+
+/** True when this month has complete data (false for months not yet reached). */
+export function isObserved(table: CalendarTable, year: number, month: number): boolean {
+  const end = table.observedUntil;
+  return !end || year < end.year || (year === end.year && month <= end.month);
+}
+
+/** True when all 12 months of the year have complete data. */
+export function isCompleteYear(table: CalendarTable, year: number): boolean {
+  return isObserved(table, year, 12);
+}
+
+/** Year and total of every complete year, in order. Part years are left out of year statistics. */
+function completeYears(table: CalendarTable): { year: number; total: number }[] {
+  return table.values
+    .map((row, i) => ({ year: table.firstYear + i, total: sum(row) }))
+    .filter((y) => isCompleteYear(table, y.year));
+}
+
+/** The last complete year in the table, or null when there is none. */
+export function lastCompleteYear(table: CalendarTable): number | null {
+  const years = completeYears(table);
+  return years.length ? years[years.length - 1].year : null;
+}
+
+/** This month's value in every year where it is observed, with that year. */
+export function observedSeries(table: CalendarTable, month: number): { year: number; value: number }[] {
+  return monthSeries(table, month)
+    .map((value, i) => ({ year: table.firstYear + i, value }))
+    .filter((v) => isObserved(table, v.year, month));
 }
 
 /** The years in the table, in order. */
@@ -121,8 +166,10 @@ export interface MonthRank {
 /** How one month compares with the same month in every other year. */
 export function rankMonth(table: CalendarTable, year: number, month: number): MonthRank {
   const value = cellOf(table, year, month);
-  const series = monthSeries(table, month);
-  const others = series.filter((_, i) => i !== year - table.firstYear);
+  // Months not reached yet are not zero fire, so they are left out of the comparison.
+  const observed = observedSeries(table, month);
+  const series = observed.map((v) => v.value);
+  const others = observed.filter((v) => v.year !== year).map((v) => v.value);
   return {
     year,
     month,
@@ -146,7 +193,9 @@ export interface MainSeason {
  * month. null when the table holds no fire at all.
  */
 export function mainSeason(table: CalendarTable, size = 3): MainSeason | null {
-  const totals = monthTotals(table);
+  // Complete years only: a part year has its early months but not its late ones.
+  const complete = table.values.filter((_, i) => isCompleteYear(table, table.firstYear + i));
+  const totals = Array.from({ length: 12 }, (_, m) => sum(complete.map((row) => row[m])));
   const total = sum(totals);
   if (total <= 0) return null;
   const top = totals
@@ -159,9 +208,9 @@ export function mainSeason(table: CalendarTable, size = 3): MainSeason | null {
   };
 }
 
-/** Median of the year totals: what a typical year looks like. */
+/** Median of the complete years' totals: what a typical year looks like. */
 export function typicalYear(table: CalendarTable): number {
-  return median(yearTotals(table)) ?? 0;
+  return median(completeYears(table).map((y) => y.total)) ?? 0;
 }
 
 export interface WorstYear {
@@ -171,17 +220,18 @@ export interface WorstYear {
   timesTypical: number | null;
 }
 
-/** The year with the highest total. Ties go to the earlier year. null without fire. */
+/** The complete year with the highest total. Ties go to the earlier year. null without fire. */
 export function worstYear(table: CalendarTable): WorstYear | null {
-  const totals = yearTotals(table);
-  let best = 0;
-  for (let i = 1; i < totals.length; i++) if (totals[i] > totals[best]) best = i;
-  if (totals[best] <= 0) return null;
+  const years = completeYears(table);
+  if (!years.length) return null;
+  let best = years[0];
+  for (const y of years) if (y.total > best.total) best = y;
+  if (best.total <= 0) return null;
   const typical = typicalYear(table);
   return {
-    year: table.firstYear + best,
-    total: totals[best],
-    timesTypical: typical > 0 ? totals[best] / typical : null,
+    year: best.year,
+    total: best.total,
+    timesTypical: typical > 0 ? best.total / typical : null,
   };
 }
 
@@ -207,5 +257,6 @@ export function compareYear(table: CalendarTable, year: number): YearComparison 
  * looks like a rise in fire.
  */
 export function yearTrend(table: CalendarTable, alpha = 0.05): TrendTest | null {
-  return mannKendall(yearTotals(table), alpha);
+  // A part year would look like a drop, so only complete years are tested.
+  return mannKendall(completeYears(table).map((y) => y.total), alpha);
 }
