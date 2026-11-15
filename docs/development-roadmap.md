@@ -22,10 +22,10 @@ The final build plan for the web app. We work one step at a time: build, validat
 | 11 | Downloads and shareable link | Not built |
 | 12 | Method page | In progress (method and validation in report/README) |
 | 13 | Live data route (NASA key) | Not built |
-| 14 | Pipeline upgrades and global cases | In progress |
+| 14 | Pipeline upgrades and geographic scope | In progress |
 | 15 | Polish and accessibility | Validated for current Europe view |
 | 16 | Deployment and submission | Not started |
-| 17 | Six global study areas, FireDNA and sensor comparison | Built; five archives pending |
+| 17 | Europe archive, FireDNA and sensor comparison | Built; Europe-only presentation |
 
 Status values: Not started, In progress, Built, Validated, Committed.
 
@@ -33,13 +33,13 @@ What was done in each finished step, and why, is written down in the [step log](
 
 ## Step log
 
-### Step 17. Six global case studies and FireDNA
+### Step 17. Europe archive and FireDNA
 
-- **What:** added the six named study areas to the explorer, made the currently supported Southern Europe case use Portugal, Spain and Greece, and added a detection-profile fingerprint plus an MODIS/VIIRS comparison panel.
-- **Why:** gives the project a cross-region scientific story and makes the sensor harmonization visible next to its seasonal findings.
+- **What:** presents the 16-country European archive with a detection-profile fingerprint and an MODIS/VIIRS comparison panel. The initial view now uses an interactive Earth globe with satellite orbit animation.
+- **Why:** keeps the application focused on data that is actually shipped and makes the sensor harmonization visible next to its seasonal findings.
 - **Method:** FireDNA uses monthly harmonized detection counts; the sensor panel compares MODIS, VIIRS and the fixed Europe-wide ratio during the overlap years. The selected-area error is descriptive because the ratio was trained on the same European overlap; the independent evidence remains the pipeline's held-out 2022–2025 validation.
-- **Coverage:** the committed archive contains Europe only. The other five cases are shown as data-pending, never as zero-fire. Target study windows are displayed on each region card.
-- **Next:** fetch spatially filtered FIRMS archives for the five remaining areas, validate observation coverage, and only then enable their analysis.
+- **Coverage:** the committed archive and interface are limited to Europe. The map zoom follows the chosen calendar period.
+- **Next:** continue validating the European record and document its limits.
 
 ### Step 0. Data pipeline and prototype (committed, 91ded23)
 

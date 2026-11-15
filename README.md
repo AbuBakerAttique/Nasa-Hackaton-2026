@@ -10,7 +10,8 @@ MODIS and VIIRS do not observe fires with identical pixel sizes, algorithms, and
 
 ## Solution and innovation
 
-- A 2001–2025 archive on a 0.25° monthly grid, with raw and corrected timelines.
+- An interactive Earth entry scene with MODIS and VIIRS orbital paths, leading into a 2001–2025 European archive on a 0.25° monthly grid.
+- A Europe-only scope across 16 countries; map framing follows the selected years or month.
 - A burning calendar, map, seasonal FireDNA summary, trend and spatial-extent views.
 - A “How was this calculated?” panel that reports the selected-area observations and corrected totals, sensor availability, filters, formulas, and quality limits.
 - ERA5 historical wind context at a selected or automatically suggested hotspot location. It is context, not causal attribution or a fire forecast.
@@ -53,7 +54,7 @@ The region groups and month-level values are documented in [validation-three-reg
 
 ## Limitations
 
-- The current application has European archives only; five other planned global study areas have no committed source data yet.
+- The application is intentionally scoped to its committed European archive; it does not present unsupported non-European regions.
 - No fire-cause classifier, future-fire model, or spread prediction is implemented.
 - Satellite detections are affected by pixel size, overpass timing, cloud/smoke/canopy obstruction, and algorithm confidence. No detection does not prove no fire occurred.
 - The monthly data include type 0 only. Other thermal-anomaly types are filtered out, not represented as zero fire.

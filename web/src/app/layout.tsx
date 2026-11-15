@@ -2,9 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Fire Calendar",
-  description:
-    "25 years of satellite fire history as one consistent record, shown as a calendar for any region.",
+  title: "FireChronos · Europe Fire Intelligence",
+  description: "Explore 25 years of harmonized NASA MODIS and VIIRS active-fire observations across Europe.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -14,11 +13,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <a href="#main-content" className="skip-link">Skip to fire explorer</a>
         <header className="site-header">
           <div className="page-width flex min-h-20 flex-wrap items-center justify-between gap-4 py-4">
-            <a href="#" className="brand" aria-label="Fire Calendar home">
+            <a href="#" className="brand" aria-label="FireChronos home">
               <span className="brand-symbol" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none"><path d="M13 2c1 6-5 6-3 11 1-2 3-3 4-4 0 3 5 5 5 9a7 7 0 0 1-14 0c0-5 6-8 8-16Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
               </span>
-              <span>Fire<span className="font-normal opacity-65"> Calendar</span><span className="brand-caption">EARTH OBSERVATION EXPLORER</span></span>
+              <span>Fire<span className="font-normal opacity-65">Chronos</span><span className="brand-caption">EUROPE FIRE INTELLIGENCE</span></span>
             </a>
             <nav aria-label="Main navigation" className="flex items-center gap-5 text-sm sm:gap-8">
               <a href="#explorer" className="nav-link">Explore</a>

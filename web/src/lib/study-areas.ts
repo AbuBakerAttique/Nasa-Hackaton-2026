@@ -10,13 +10,8 @@ export interface StudyArea {
   note: string;
 }
 
-/** Six named case studies from the FireChronos project brief. */
+/** The currently supported study area. The deployed archive is Europe-only. */
 export const STUDY_AREAS: readonly StudyArea[] = [
-  { id: "amazon", name: "Brazilian Amazon", region: "South America", targetYears: "2018–2025", countryIds: [], note: "Brazil archive is not in the current app dataset." },
-  { id: "california", name: "California", region: "North America", targetYears: "2020–2025", countryIds: [], note: "California subset is not in the current app dataset." },
-  { id: "southeast-australia", name: "Southeast Australia", region: "Oceania", targetYears: "2020–2025", countryIds: [], note: "Australia archive is not in the current app dataset." },
-  { id: "central-africa", name: "Central African savannas", region: "Africa", targetYears: "2020–2025", countryIds: [], note: "Central Africa archive is not in the current app dataset." },
-  { id: "indonesia", name: "Sumatra & Kalimantan", region: "Southeast Asia", targetYears: "2020–2025", countryIds: [], note: "Indonesia archive is not in the current app dataset." },
   {
     id: "southern-europe",
     name: "Europe",

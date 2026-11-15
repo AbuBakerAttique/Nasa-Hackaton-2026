@@ -22,9 +22,8 @@ import { countriesInRegion, regionBounds, regionLabel, rowsInRegion, type LonLat
 import { countriesForStudyArea, studyAreaIsAvailable, studyAreaYears, STUDY_AREAS } from "@/lib/study-areas";
 import { COL, VIIRS_FIRST_YEAR, type DataIndex } from "@/lib/types";
 
-/** Shown first, as in the prototype on the project board. */
 const DEFAULT_COUNTRY = "Germany";
-const DEFAULT_STUDY_AREA = STUDY_AREAS.find((area) => area.id === "southern-europe")!;
+const DEFAULT_STUDY_AREA = STUDY_AREAS[0];
 
 const EXPLAIN: Record<RecordKind, string> = {
   corrected: `Corrected record: before ${VIIRS_FIRST_YEAR}, MODIS counts are scaled by one Europe-wide overlap ratio; from ${VIIRS_FIRST_YEAR}, values are observed VIIRS S-NPP counts. Earlier values are aggregate estimates and cannot add cells MODIS missed.`,
@@ -141,10 +140,18 @@ export function FireCalendar({ index }: { index: DataIndex }) {
     [rows, record, firstYear, lastYear],
   );
   const yearCount = lastYear - firstYear + 1;
-  const bounds = useMemo(
-    () => (region ? regionBounds(region) : rows ? (studyArea ? allCellBounds(rows) : viewBounds(rows)) : null),
-    [region, rows, studyArea],
-  );
+  const bounds = useMemo(() => {
+    if (region) return regionBounds(region);
+    const active = squares?.[record] ?? [];
+    if (active.length) {
+      const extent = active.reduce((box, cell) => ({
+        west: Math.min(box.west, cell.lon), east: Math.max(box.east, cell.lon),
+        south: Math.min(box.south, cell.lat), north: Math.max(box.north, cell.lat),
+      }), { west: Infinity, east: -Infinity, south: Infinity, north: -Infinity });
+      return [extent.west - 0.125, extent.south - 0.125, extent.east + 0.125, extent.north + 0.125] as [number, number, number, number];
+    }
+    return rows ? (studyArea ? allCellBounds(rows) : viewBounds(rows)) : null;
+  }, [region, rows, studyArea, squares, record]);
   const outline = useMemo((): LonLat[] | null => {
     if (!region) return null;
     if (region.kind === "polygon") return region.ring;
@@ -170,31 +177,17 @@ export function FireCalendar({ index }: { index: DataIndex }) {
         <span className="dataset-badge"><span className="status-dot" /> Historical observations</span>
       </div>
 
-      <section className="study-area-section mt-5" aria-label="Six global study areas">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div><p className="eyebrow">GLOBAL CASE STUDIES</p><p className="mt-1 text-sm text-muted">Choose a region. Cards without a loaded archive are marked clearly.</p></div>
-          {studyArea && <button type="button" className="text-sm text-accent underline" onClick={() => { setStudyAreaId(null); setFirstYear(index.firstYear); setLastYear(index.lastYear); }}>Return to country view</button>}
-        </div>
-        <div className="study-area-grid mt-3">
-          {STUDY_AREAS.map((area) => {
-            const available = studyAreaIsAvailable(area, index);
-            const active = studyAreaId === area.id;
-            return (
-              <button key={area.id} type="button" aria-pressed={active} onClick={() => { const [start, end] = studyAreaYears(area); setStudyAreaId(area.id); setFirstYear(Math.max(index.firstYear, start)); setLastYear(Math.min(index.lastYear, end)); setRegion(null); setDrawMode(null); }} className="study-area-card">
-                <span className="study-area-region">{area.region} · {area.targetYears}</span>
-                <strong>{area.name}</strong>
-                <span className={available ? "study-area-status available" : "study-area-status pending"}>{available ? "NASA records available" : "NASA records needed"}</span>
-              </button>
-            );
-          })}
-        </div>
-      </section>
+      <div className="europe-scope mt-5">
+        <span className="europe-scope-mark" aria-hidden="true">EU</span>
+        <div><p className="eyebrow">EUROPE ARCHIVE</p><p className="mt-1 text-sm text-muted">NASA FIRMS observations across 16 European countries · {index.firstYear}–{index.lastYear}</p></div>
+        {studyArea && <button type="button" className="ml-auto text-sm text-accent underline" onClick={() => { setStudyAreaId(null); setFirstYear(index.firstYear); setLastYear(index.lastYear); }}>Choose a country</button>}
+      </div>
 
       <div className="filter-bar mt-5 flex flex-wrap items-end gap-4">
         {studyArea ? (
           <div>
-            <span className="block text-sm font-medium">Global study area</span>
-            <div className={`${fieldClass} min-w-48`} aria-label={`Selected global study area: ${studyArea.name}`}>{studyArea.name}</div>
+            <span className="block text-sm font-medium">Study area</span>
+            <div className={`${fieldClass} min-w-48`} aria-label={`Selected study area: ${studyArea.name}`}>{studyArea.name}</div>
           </div>
         ) : (
           <div>
@@ -433,7 +426,7 @@ export function FireCalendar({ index }: { index: DataIndex }) {
         </div>
         <WeatherPanel weather={weather} month={month} onPickingChange={choosePicking} />
       </div>
-      {rows && studyAreaIsAvailable(studyArea ?? STUDY_AREAS[5], index) && (
+      {rows && studyAreaIsAvailable(studyArea ?? STUDY_AREAS[0], index) && (
         <FireSciencePanel rows={rows} firstYear={firstYear} lastYear={lastYear} ratio={harmonizationReport.regional_ratio_all_cells} record={record} />
       )}
     </section>
