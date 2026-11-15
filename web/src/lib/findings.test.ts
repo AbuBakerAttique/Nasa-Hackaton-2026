@@ -92,7 +92,7 @@ describe("special cases", () => {
   const germany = load("Germany");
 
   it("warns on the raw record", () => {
-    expect(describeTable(table(germany, "raw")).caution).toMatch(/^These statements use the raw record/);
+    expect(describeTable(table(germany, "raw")).caution).toMatch(/^These statements use the raw timeline/);
   });
 
   it("marks estimated years in the corrected record", () => {
@@ -111,7 +111,7 @@ describe("special cases", () => {
   it("says so when there is no fire", () => {
     const f = describeTable(table([], "corrected", 2001, 2025));
     expect(f.season).toBeNull();
-    expect(f.caution).toBe("No fire detections in this area from 2001 to 2025.");
+    expect(f.caution).toBe("No retained hotspot detections in this area from 2001 to 2025; this does not prove that no fire occurred.");
   });
 
   it("finds the lowest month and handles a single year", () => {

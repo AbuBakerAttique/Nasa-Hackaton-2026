@@ -8,7 +8,7 @@
 // Run it again every time the pipeline has been rerun, then commit web/public/data/.
 
 import { existsSync } from "node:fs";
-import { copyFile, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { copyFile, cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -38,6 +38,27 @@ if (!existsSync(sourceCells) || !existsSync(sourceReport)) {
 
 const files = (await readdir(sourceCells)).filter((f) => f.endsWith(".json")).sort();
 if (files.length === 0) fail(`no country files found in ${sourceCells}.`);
+
+// Verify against the source rows before replacing the app's working copy.
+const report = JSON.parse(await readFile(sourceReport, "utf8"));
+const [testFirst, testLast] = report.test_years.split("-").map(Number);
+let actualViirs = 0;
+let actualModis = 0;
+for (const file of files) {
+  const rows = JSON.parse(await readFile(path.join(sourceCells, file), "utf8"));
+  if (!Array.isArray(rows) || !rows.every((r) => Array.isArray(r) && r.length === ROW_LENGTH && r.every(Number.isFinite))) {
+    fail(`${file}: invalid source rows; existing app data preserved.`);
+  }
+  for (const row of rows) {
+    if (row[2] >= testFirst && row[2] <= testLast) {
+      actualViirs += row[5];
+      actualModis += row[4];
+    }
+  }
+}
+if (actualViirs <= 0 || actualViirs !== report.test_totals.actual_viirs || actualModis !== report.test_totals.raw_modis) {
+  fail("validation report does not match source detections; existing app data preserved. Rerun the pipeline.");
+}
 
 // Everything in the target folder is generated, so start clean.
 // This removes files of countries the pipeline no longer produces.
@@ -83,6 +104,9 @@ await copyFile(sourceReport, path.join(targetDir, "report.json"));
 
 const index = { firstYear, lastYear, countries };
 await writeFile(path.join(targetDir, "index.json"), JSON.stringify(index, null, 2) + "\n");
+
+const cases = path.join(sourceDir, "case-studies");
+if (existsSync(cases)) await cp(cases, path.join(webDir, "public", "case-studies"), { recursive: true });
 
 const totalRows = countries.reduce((sum, c) => sum + c.rows, 0);
 console.log(

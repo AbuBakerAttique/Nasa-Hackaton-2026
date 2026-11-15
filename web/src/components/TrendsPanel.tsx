@@ -71,7 +71,7 @@ export function TrendsPanel({ table, extent }: { table: CalendarTable; extent: E
       yAxis: { type: "value", minInterval: 1, ...axis },
       series: [
         {
-          name: "Squares with fire",
+          name: "Squares with detections",
           type: "line",
           data: extent.squares,
           symbol: "none",
@@ -98,7 +98,7 @@ export function TrendsPanel({ table, extent }: { table: CalendarTable; extent: E
     <div className="grid gap-4 lg:grid-cols-2">
       <section aria-labelledby="trend-heading" className="chart-card">
         <h3 id="trend-heading" className="font-semibold">
-          Trend: is fire activity rising or falling?
+          Trend in hotspot detections
         </h3>
         <p className="mt-1 text-sm" aria-live="polite">
           {describeTrend(table)}
@@ -115,15 +115,15 @@ export function TrendsPanel({ table, extent }: { table: CalendarTable; extent: E
 
       <section aria-labelledby="extent-heading" className="chart-card">
         <h3 id="extent-heading" className="font-semibold">
-          Extent: how many squares burned each month
+          Grid-cell detection extent
         </h3>
         <p className="mt-1 text-sm text-muted">
-          Each map square with at least one detection counts once. Peaks show months when fire was widespread, not
-          just intense in one place.
+          Each map square with at least one filtered detection counts once. Peaks show months when detections were
+          geographically widespread, not burned area or fire intensity.
         </p>
         <EChart
           option={extentOption}
-          label={`Line chart of map squares with fire per month, ${span}`}
+          label={`Line chart of map squares with at least one filtered detection per month, ${span}`}
           className="mt-2 h-64 w-full"
         />
         {caution && <p className="mt-1 text-xs text-accent">{caution}</p>}

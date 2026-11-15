@@ -17,6 +17,9 @@ import {
   formatMeasure,
   formatPoint,
   formatUtcTime,
+  compassName,
+  type MonthlyWindSummary,
+  type WeatherMonth,
   type WeatherDay,
 } from "@/lib/weather";
 
@@ -76,18 +79,69 @@ function DailyWindChart({ day, hour }: { day: WeatherDay; hour: number | null })
   );
 }
 
+function MonthlyWindChart({ month, summary }: { month: WeatherMonth; summary: MonthlyWindSummary }) {
+  const colors = useChartColors();
+  const option = useMemo(
+    (): EChartsCoreOption => ({
+      aria: { enabled: true },
+      grid: { left: 48, right: 16, top: 12, bottom: 30 },
+      tooltip: {
+        trigger: "axis",
+        valueFormatter: (value: unknown) => typeof value === "number" ? `${value.toFixed(1)} km/h` : "no wind estimate",
+      },
+      xAxis: {
+        type: "category",
+        data: summary.dailyMeans.map((item) => String(item.day).padStart(2, "0")),
+        axisLine: { lineStyle: { color: colors.line } },
+        axisLabel: { color: colors.muted, interval: 4 },
+        name: "Day of month",
+        nameLocation: "middle",
+        nameGap: 22,
+        nameTextStyle: { color: colors.muted },
+      },
+      yAxis: {
+        type: "value",
+        name: "km/h",
+        nameTextStyle: { color: colors.muted },
+        axisLabel: { color: colors.muted },
+        splitLine: { lineStyle: { color: colors.line } },
+      },
+      series: [{
+        name: "Daily mean wind speed at 10 m",
+        type: "line",
+        data: summary.dailyMeans.map((item) => item.windSpeed),
+        connectNulls: false,
+        symbol: "circle",
+        symbolSize: 4,
+        lineStyle: { color: colors.trend, width: 2 },
+        itemStyle: { color: colors.trend },
+      }],
+    }),
+    [summary, colors],
+  );
+  return (
+    <EChart
+      option={option}
+      label={`Daily mean 10 metre wind speed during ${month.query.year}-${String(month.query.month).padStart(2, "0")}, at the selected point`}
+      className="mt-2 h-48 w-full"
+    />
+  );
+}
+
 export function WeatherPanel({
   weather,
   month,
   onPickingChange,
+  allowPointPicking = true,
 }: {
   weather: HistoricalWeather;
-  /** The calendar month, if one is picked: it narrows the date picker. */
+  /** The picked month triggers the monthly wind summary and narrows the date picker. */
   month: MonthPick | null;
   /** Turning point picking on must turn region drawing off. */
   onPickingChange: (picking: boolean) => void;
+  allowPointPicking?: boolean;
 }) {
-  const { point, picking, date, hour, minDate, maxDate, state, selected } = weather;
+  const { point, picking, date, hour, minDate, maxDate, state, selected, monthlyState, monthlySummary } = weather;
 
   return (
     <section aria-labelledby="weather-heading" className="insight-card mt-4 rounded-md border border-line p-4">
@@ -96,7 +150,7 @@ export function WeatherPanel({
         Historical weather at one point
       </h3>
       <p className="mt-1 text-sm text-muted">
-        {WEATHER_SOURCE} for a single place, day and hour. ERA5 is a reanalysis on a grid of about 25 km: it does not
+        {WEATHER_SOURCE} for a selected point and month, with optional day-and-hour detail. ERA5 is a reanalysis on a grid of about 25 km: it does not
         show local gusts or winds shaped by valleys and hills. This is context only. It does not explain why a fire
         started and does not predict fire.
       </p>
@@ -105,14 +159,14 @@ export function WeatherPanel({
         <div>
           <span className="block text-sm font-medium">Sampling point</span>
           <div className="mt-1 flex flex-wrap items-center gap-2">
-            <button
+            {allowPointPicking && <button
               type="button"
               aria-pressed={picking}
               onClick={() => onPickingChange(!picking)}
               className={picking ? `${buttonClass} border-accent bg-accent text-background` : buttonClass}
             >
               {picking ? "Click the map…" : point ? "Move the point" : "Choose a point on the map"}
-            </button>
+            </button>}
             {point && <span className="text-sm">{formatPoint(point.lat, point.lon)}</span>}
           </div>
         </div>
@@ -152,10 +206,34 @@ export function WeatherPanel({
         </div>
       </div>
 
+      {month && (
+        <section className="mt-4 border-t border-line pt-4" aria-labelledby="monthly-wind-heading" aria-live="polite" aria-busy={monthlyState.status === "loading"}>
+          <h4 id="monthly-wind-heading" className="font-semibold">Wind during {monthName(month.month, true)} {month.year}</h4>
+          {!point && <p className="mt-2 text-sm text-muted">No fire grid cell is available for this month. Choose a point on the map to load its wind summary.</p>}
+          {point && monthlyState.status === "loading" && <p className="mt-2 text-sm text-muted">Loading hourly ERA5 wind for the whole month…</p>}
+          {point && monthlyState.status === "error" && (
+            <p role="alert" className="mt-2 rounded-md border border-accent px-3 py-2 text-sm text-accent">{monthlyState.message}</p>
+          )}
+          {point && monthlyState.status === "ready" && monthlySummary && (
+            <>
+              <p className="mt-1 text-xs text-muted">Nearest ERA5 grid point: {formatPoint(monthlyState.month.grid.lat, monthlyState.month.grid.lon)} · 10 m wind · {monthlySummary.validSpeedHours}/{monthlySummary.expectedHours} hourly speed readings available</p>
+              <dl className="mt-3 grid gap-3 sm:grid-cols-3">
+                <div><dt className="text-xs text-muted">Mean hourly speed</dt><dd className="font-medium">{formatMeasure(monthlySummary.meanSpeed, WEATHER_UNITS.wind_speed_10m)}</dd></div>
+                <div><dt className="text-xs text-muted">Median hourly speed</dt><dd className="font-medium">{formatMeasure(monthlySummary.medianSpeed, WEATHER_UNITS.wind_speed_10m)}</dd></div>
+                <div><dt className="text-xs text-muted">Most frequent direction</dt><dd className="font-medium">{monthlySummary.prevailingFrom === null ? "no direction estimate" : `from ${compassName(monthlySummary.prevailingFrom)} (${Math.round(monthlySummary.prevailingFrom)}°)`}</dd><dd className="text-xs text-muted">{monthlySummary.prevailingShare === null ? "No valid non-calm directions" : `${(monthlySummary.prevailingShare * 100).toFixed(0)}% of ${monthlySummary.directionSamples} non-calm hourly directions`}</dd></div>
+              </dl>
+              <p className="mt-4 text-sm font-medium">Daily mean wind speed through the month</p>
+              <MonthlyWindChart month={monthlyState.month} summary={monthlySummary} />
+              <p className="mt-2 text-xs text-muted">Direction is the most frequent 16-point compass sector among non-calm hours. Missing hours remain missing. This is one ERA5 grid point, not a wind average over the selected fire region.</p>
+            </>
+          )}
+        </section>
+      )}
+
       <p className="mt-2 text-xs text-muted">
         {month
-          ? `Calendar month selected: ${monthName(month.month, true)} ${month.year}. Pick a day and an hour in it; one hour of wind does not describe the whole month. Clear the month selection to choose any day.`
-          : "Pick a day and an hour. Selecting a month in the calendar narrows the days to that month."}
+          ? `Calendar month selected: ${monthName(month.month, true)} ${month.year}. The sampling point starts at the month’s most active fire grid cell; move it on the map if you want another location. Choose a day and hour below for detailed conditions.`
+          : "Pick a day and an hour for detailed weather. Selecting a calendar month also loads its wind summary for the chosen map point."}
       </p>
 
       <div className="mt-3" aria-live="polite" aria-busy={state.status === "loading"}>

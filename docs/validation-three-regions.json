@@ -1,0 +1,68 @@
+{
+  "training_years": "2012-2021",
+  "test_years": "2022-2025",
+  "method": "MODIS monthly detections \u00d7 fixed Europe-wide ratio",
+  "regions": {
+    "West & north-central Europe": {
+      "countries": [
+        "France",
+        "Germany",
+        "Austria",
+        "Czech_Republic",
+        "Hungary",
+        "Poland",
+        "Sweden"
+      ],
+      "period": "2022-2025",
+      "n_calendar_months": 48,
+      "ratio": 3.163,
+      "actual_viirs_total": 44267,
+      "raw_modis_total": 12813,
+      "fixed_ratio_estimate_total": 40527.52,
+      "raw_modis_mae_per_month": 655.29,
+      "fixed_ratio_mae_per_month": 314.01,
+      "raw_modis_r2_monthly": -0.226,
+      "fixed_ratio_r2_monthly": 0.707,
+      "fixed_ratio_total_bias_percent": -8.4
+    },
+    "Mediterranean Europe": {
+      "countries": [
+        "Croatia",
+        "Greece",
+        "Italy",
+        "Portugal",
+        "Spain"
+      ],
+      "period": "2022-2025",
+      "n_calendar_months": 48,
+      "ratio": 3.163,
+      "actual_viirs_total": 164673,
+      "raw_modis_total": 48849,
+      "fixed_ratio_estimate_total": 154509.39,
+      "raw_modis_mae_per_month": 2413.0,
+      "fixed_ratio_mae_per_month": 548.52,
+      "raw_modis_r2_monthly": 0.343,
+      "fixed_ratio_r2_monthly": 0.973,
+      "fixed_ratio_total_bias_percent": -6.2
+    },
+    "East & southeast Europe": {
+      "countries": [
+        "Bulgaria",
+        "Romania",
+        "Turkey",
+        "Ukraine"
+      ],
+      "period": "2022-2025",
+      "n_calendar_months": 48,
+      "ratio": 3.163,
+      "actual_viirs_total": 343849,
+      "raw_modis_total": 104968,
+      "fixed_ratio_estimate_total": 332013.78,
+      "raw_modis_mae_per_month": 4976.69,
+      "fixed_ratio_mae_per_month": 999.32,
+      "raw_modis_r2_monthly": -0.061,
+      "fixed_ratio_r2_monthly": 0.939,
+      "fixed_ratio_total_bias_percent": -3.4
+    }
+  }
+}

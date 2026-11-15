@@ -1,7 +1,8 @@
-"""Build the cell table, train and validate the harmonization model, export for the web app.
+"""Build cell tables, compare candidate corrections, report validation, and export app data.
 Run from the repo root:  venv/bin/python pipeline/02_harmonize.py
 Outputs in data/out/: cells.json, report.json, problem.png, validation.png"""
 import glob
+import hashlib
 import json
 import pathlib
 
@@ -43,6 +44,17 @@ def load(pattern, sensor):
 
 m = load("data/raw/modis_*.csv", "modis")
 v = load("data/raw/viirs-snpp_*.csv", "viirs")
+
+# Fail before publishing outputs if an overlap year has no usable observations.
+for sensor, frame in [("MODIS", m), ("VIIRS", v)]:
+    absent = set(range(2012, 2026)) - set(frame.year)
+    if absent:
+        raise ValueError(f"{sensor}: missing usable overlap years {sorted(absent)}; rerun download")
+inputs = sorted(pathlib.Path("data/raw").glob("*.csv"))
+input_digest = hashlib.sha256()
+for source in inputs:
+    input_digest.update(source.name.encode())
+    input_digest.update(source.read_bytes())
 
 # Chart 1: the problem. Same fires, two sensors, different counts.
 yearly = pd.DataFrame({"MODIS": m.groupby("year").size(), "VIIRS S-NPP": v.groupby("year").size()})
@@ -94,15 +106,19 @@ ab = blocks(te_all.assign(est=np.where(te_all.m_n > 0, predict(te_all), 0) * upl
 report = {
     "grid_degrees": GRID,
     "train_years": f"2012-{TRAIN_END}", "test_years": f"{TEST_START}-{int(cells.year.max())}",
-    "baseline_ratio": round(float(ratio), 3), "uplift_for_unseen_cells": round(float(uplift), 3),
+    "seen_cell_candidate_ratio": round(float(ratio), 3), "ml_candidate_unseen_cell_uplift": round(float(uplift), 3),
     "share_of_viirs_detections_where_modis_saw_nothing": round(float(1 - 1 / uplift), 3),
-    "cell_month": {"model_mae": round(float(mae(test.v_n, pred)), 2), "baseline_mae": round(float(mae(test.v_n, base)), 2),
-                   "model_r2": round(float(r2(test.v_n, pred)), 3), "baseline_r2": round(float(r2(test.v_n, base)), 3)},
-    "region_month_seen_cells": {"model_mae": round(float(mae(tb.v_n, tb.pred)), 1), "baseline_mae": round(float(mae(tb.v_n, tb.base)), 1),
-                                "model_r2": round(float(r2(tb.v_n, tb.pred)), 3), "baseline_r2": round(float(r2(tb.v_n, tb.base)), 3)},
-    "region_month_all_cells": {"harmonized_mae": round(float(mae(ab.v_n, ab.est)), 1), "harmonized_r2": round(float(r2(ab.v_n, ab.est)), 3),
+    "candidate_models_on_modis_seen_cell_months": {
+        "ml_ratio_model": {"mae": round(float(mae(test.v_n, pred)), 2), "r2": round(float(r2(test.v_n, pred)), 3)},
+        "seen_cell_ratio": {"mae": round(float(mae(test.v_n, base)), 2), "r2": round(float(r2(test.v_n, base)), 3)},
+    },
+    "candidate_models_on_modis_seen_blocks": {
+        "ml_ratio_model": {"mae": round(float(mae(tb.v_n, tb.pred)), 1), "r2": round(float(r2(tb.v_n, tb.pred)), 3)},
+        "seen_cell_ratio": {"mae": round(float(mae(tb.v_n, tb.base)), 1), "r2": round(float(r2(tb.v_n, tb.base)), 3)},
+    },
+    "region_month_all_cells": {"ml_candidate_mae": round(float(mae(ab.v_n, ab.est)), 1), "ml_candidate_r2": round(float(r2(ab.v_n, ab.est)), 3),
                                "raw_modis_mae": round(float(mae(ab.v_n, ab.m_n)), 1), "raw_modis_r2": round(float(r2(ab.v_n, ab.m_n)), 3)},
-    "test_totals": {"actual_viirs": int(te_all.v_n.sum()), "harmonized": int(ab.est.sum()), "raw_modis": int(te_all.m_n.sum())},
+    "test_totals": {"actual_viirs": int(te_all.v_n.sum()), "raw_modis": int(te_all.m_n.sum())},
 }
 # Per country: yearly totals on the held-out years, harmonized estimate against actual VIIRS.
 by_country = {}
@@ -111,46 +127,65 @@ for country, g in ce.groupby("country"):
     yr = g.groupby("year")[["v_n", "m_n", "est", "simple"]].sum()
     by_country[country] = {
         "actual_viirs": int(yr.v_n.sum()), "raw_modis": int(yr.m_n.sum()),
-        "model_total_error_pct": round(float((yr.est.sum() / max(yr.v_n.sum(), 1) - 1) * 100), 1),
-        "simple_ratio_total_error_pct": round(float((yr.simple.sum() / max(yr.v_n.sum(), 1) - 1) * 100), 1),
+        "ml_candidate_total_bias_pct": round(float((yr.est.sum() / max(yr.v_n.sum(), 1) - 1) * 100), 1),
+        "fixed_ratio_total_bias_pct": round(float((yr.simple.sum() / max(yr.v_n.sum(), 1) - 1) * 100), 1),
     }
 # Country ratio: one multiplier per country, learned on the training years (all cells).
 cr = tr_all.groupby("country")[["v_n", "m_n"]].sum()
 country_ratio = (cr.v_n / cr.m_n.clip(lower=1)).to_dict()
 ce["cratio"] = ce.m_n * ce.country.map(country_ratio)
 cb = blocks(ce, ["v_n", "cratio"])
-report["region_month_all_cells"]["country_ratio_mae"] = round(float(mae(cb.v_n, cb.cratio)), 1)
-report["region_month_all_cells"]["country_ratio_r2"] = round(float(r2(cb.v_n, cb.cratio)), 3)
 for country, g in ce.groupby("country"):
-    by_country[country]["country_ratio"] = round(float(country_ratio[country]), 2)
-    by_country[country]["country_ratio_total_error_pct"] = round(float((g.cratio.sum() / max(g.v_n.sum(), 1) - 1) * 100), 1)
-report["shipped_method"] = "single_ratio"
+    by_country[country]["country_specific_ratio"] = round(float(country_ratio[country]), 2)
+    by_country[country]["country_specific_ratio_total_bias_pct"] = round(float((g.cratio.sum() / max(g.v_n.sum(), 1) - 1) * 100), 1)
+report["shipped_method"] = "fixed_europe_wide_ratio"
 report["regional_ratio_all_cells"] = round(float(tr_all.v_n.sum() / tr_all.m_n.sum()), 3)
-sb = blocks(ce, ["v_n", "simple"])
-report["region_month_all_cells"]["simple_ratio_mae"] = round(float(mae(sb.v_n, sb.simple)), 1)
-report["region_month_all_cells"]["simple_ratio_r2"] = round(float(r2(sb.v_n, sb.simple)), 3)
+sb = blocks(ce, ["v_n", "m_n", "simple"])
 report["by_country_test_years"] = by_country
+report.pop("region_month_all_cells")
+report["test_totals"]["fixed_ratio_estimate"] = round(float(ce.simple.sum()), 2)
+report["validation"] = {
+    "target": "filtered VIIRS S-NPP hotspot detections",
+    "years": report["test_years"],
+    "unit": "country × 2-degree spatial block × month with at least one sensor detection",
+    "n_units": int(len(sb)),
+    "fixed_ratio": {"mae": round(float(mae(sb.v_n, sb.simple)), 1),
+                    "r2": round(float(r2(sb.v_n, sb.simple)), 3),
+                    "total_estimate": round(float(ce.simple.sum()), 2)},
+    "raw_modis": {"mae": round(float(mae(sb.v_n, sb.m_n)), 1),
+                  "r2": round(float(r2(sb.v_n, sb.m_n)), 3),
+                  "total": int(te_all.m_n.sum())},
+    "ml_candidate": {"mae": round(float(mae(ab.v_n, ab.est)), 1),
+                     "r2": round(float(r2(ab.v_n, ab.est)), 3),
+                     "total_estimate": round(float(ab.est.sum()), 2)},
+    "limitations": "Scores describe detection-count agreement on non-empty spatial block-months, not individual fires, burned area, ignition, or spread.",
+}
+report["validation_scope"] = report["validation"]["limitations"]
+report["input_provenance"] = {"csv_files": len(inputs), "sha256": input_digest.hexdigest(),
+    "filtered_rows_by_year": {sensor: {str(y): int(n) for y, n in frame.groupby("year").size().items()}
+                              for sensor, frame in [("modis", m), ("viirs", v)]}}
 
 # Fire intensity: the same idea for heat output (fire radiative power, MW), with its own ratio.
 frp_ratio = tr_all.v_frp.sum() / tr_all.m_frp.sum()
 fb = blocks(te_all.assign(est_frp=te_all.m_frp * frp_ratio), ["v_frp", "m_frp", "est_frp"])
 report["intensity"] = {"frp_ratio": round(float(frp_ratio), 3),
                        "region_month_r2_raw_modis": round(float(r2(fb.v_frp, fb.m_frp)), 3),
-                       "region_month_r2_corrected": round(float(r2(fb.v_frp, fb.est_frp)), 3)}
+                       "region_month_r2_fixed_ratio": round(float(r2(fb.v_frp, fb.est_frp)), 3),
+                       "limitation": "Exploratory FRP aggregate comparison; different sensor pixel sizes and retrievals prevent interpretation as burned area or cumulative fire energy."}
 (OUT / "report.json").write_text(json.dumps(report, indent=2))
 print(json.dumps(report, indent=2))
 
 # Chart 2: validation on held-out years, region-month totals.
 fig, ax = plt.subplots(figsize=(5, 5))
 ax.scatter(ab.v_n, ab.m_n, s=8, alpha=0.4, label="raw MODIS")
-ax.scatter(ab.v_n, ab.est, s=8, alpha=0.6, label="harmonized")
-lim = max(ab.v_n.max(), ab.est.max()); ax.plot([1, lim], [1, lim], "k--", lw=1)
+ax.scatter(sb.v_n, sb.simple, s=8, alpha=0.6, label="harmonized (exported single ratio)")
+lim = max(sb.v_n.max(), sb.simple.max()); ax.plot([1, lim], [1, lim], "k--", lw=1)
 ax.set_xscale("log"); ax.set_yscale("log")
 ax.set_xlabel("actual VIIRS detections (region-month)"); ax.set_ylabel("estimate from MODIS")
 ax.set_title(f"Held-out years {report['test_years']}"); ax.legend()
 plt.tight_layout(); plt.savefig(OUT / "validation.png", dpi=150); plt.close()
 
-# Export. Before 2012: model estimate. From 2012: real VIIRS.
+# Export. Before 2012: single-ratio estimate. From 2012: real VIIRS.
 # Shipped method: one ratio for all countries. On held-out years it is the most accurate for regional
 # totals (see report.json). The per-cell model and the per-country ratio are reported for comparison only.
 SHIPPED_RATIO = tr_all.v_n.sum() / tr_all.m_n.sum()

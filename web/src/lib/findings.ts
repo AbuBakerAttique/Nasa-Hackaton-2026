@@ -50,7 +50,7 @@ export function describeTable(table: CalendarTable): TableFindings {
   const span = years === 1 ? `${table.firstYear}` : `${table.firstYear} to ${table.lastYear}`;
 
   if (tableTotal(table) <= 0) {
-    return { season: null, worst: null, latest: null, caution: `No fire ${unit} in this area from ${span}.` };
+    return { season: null, worst: null, latest: null, caution: `No retained hotspot ${unit} in this area from ${span}; this does not prove that no fire occurred.` };
   }
 
   const s = mainSeason(table)!;
@@ -58,7 +58,7 @@ export function describeTable(table: CalendarTable): TableFindings {
 
   const caution =
     table.record === "raw"
-      ? `These statements use the raw record, which mixes two satellites: before ${VIIRS_FIRST_YEAR} the counts are about three times lower than the newer satellite would show. Switch to the corrected record to compare years.`
+      ? `These statements use the raw timeline, which switches from MODIS to VIIRS in ${VIIRS_FIRST_YEAR}. The sensors have different detection characteristics, so that transition can distort a time comparison.`
       : null;
 
   if (years < MIN_YEARS_TO_COMPARE) {

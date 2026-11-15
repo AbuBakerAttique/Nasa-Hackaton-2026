@@ -2,171 +2,242 @@
   "grid_degrees": 0.25,
   "train_years": "2012-2021",
   "test_years": "2022-2025",
-  "baseline_ratio": 2.602,
-  "uplift_for_unseen_cells": 1.216,
   "share_of_viirs_detections_where_modis_saw_nothing": 0.177,
-  "cell_month": {
-    "model_mae": 5.91,
-    "baseline_mae": 6.39,
-    "model_r2": 0.841,
-    "baseline_r2": 0.835
-  },
-  "region_month_seen_cells": {
-    "model_mae": 19.7,
-    "baseline_mae": 23.2,
-    "model_r2": 0.942,
-    "baseline_r2": 0.929
-  },
-  "region_month_all_cells": {
-    "harmonized_mae": 18.3,
-    "harmonized_r2": 0.898,
-    "raw_modis_mae": 37.6,
-    "raw_modis_r2": 0.497,
-    "country_ratio_mae": 18.4,
-    "country_ratio_r2": 0.936,
-    "simple_ratio_mae": 18.2,
-    "simple_ratio_r2": 0.943
-  },
   "test_totals": {
     "actual_viirs": 552789,
-    "harmonized": 535330,
-    "raw_modis": 166630
+    "raw_modis": 166630,
+    "fixed_ratio_estimate": 526981.88,
+    "ml_candidate_estimate": 535330
   },
-  "shipped_method": "single_ratio",
+  "shipped_method": "fixed_europe_wide_ratio",
   "regional_ratio_all_cells": 3.163,
   "by_country_test_years": {
     "Austria": {
       "actual_viirs": 1114,
       "raw_modis": 178,
-      "model_total_error_pct": -64.7,
-      "simple_ratio_total_error_pct": -49.5,
-      "country_ratio": 4.36,
-      "country_ratio_total_error_pct": -30.3
+      "ml_candidate_total_bias_pct": -64.7,
+      "fixed_ratio_total_bias_pct": -49.5,
+      "country_specific_ratio": 4.36,
+      "country_specific_ratio_total_bias_pct": -30.3
     },
     "Bulgaria": {
       "actual_viirs": 10574,
       "raw_modis": 3618,
-      "model_total_error_pct": 12.8,
-      "simple_ratio_total_error_pct": 8.2,
-      "country_ratio": 2.98,
-      "country_ratio_total_error_pct": 2.1
+      "ml_candidate_total_bias_pct": 12.8,
+      "fixed_ratio_total_bias_pct": 8.2,
+      "country_specific_ratio": 2.98,
+      "country_specific_ratio_total_bias_pct": 2.1
     },
     "Croatia": {
       "actual_viirs": 3405,
       "raw_modis": 972,
-      "model_total_error_pct": -9.7,
-      "simple_ratio_total_error_pct": -9.7,
-      "country_ratio": 3.74,
-      "country_ratio_total_error_pct": 6.8
+      "ml_candidate_total_bias_pct": -9.7,
+      "fixed_ratio_total_bias_pct": -9.7,
+      "country_specific_ratio": 3.74,
+      "country_specific_ratio_total_bias_pct": 6.8
     },
     "Czech_Republic": {
       "actual_viirs": 1329,
       "raw_modis": 249,
-      "model_total_error_pct": -59.9,
-      "simple_ratio_total_error_pct": -40.7,
-      "country_ratio": 2.92,
-      "country_ratio_total_error_pct": -45.3
+      "ml_candidate_total_bias_pct": -59.9,
+      "fixed_ratio_total_bias_pct": -40.7,
+      "country_specific_ratio": 2.92,
+      "country_specific_ratio_total_bias_pct": -45.3
     },
     "France": {
       "actual_viirs": 18643,
       "raw_modis": 5857,
-      "model_total_error_pct": -27.7,
-      "simple_ratio_total_error_pct": -0.6,
-      "country_ratio": 3.71,
-      "country_ratio_total_error_pct": 16.5
+      "ml_candidate_total_bias_pct": -27.7,
+      "fixed_ratio_total_bias_pct": -0.6,
+      "country_specific_ratio": 3.71,
+      "country_specific_ratio_total_bias_pct": 16.5
     },
     "Germany": {
       "actual_viirs": 12091,
       "raw_modis": 3996,
-      "model_total_error_pct": -59.1,
-      "simple_ratio_total_error_pct": 4.5,
-      "country_ratio": 3.39,
-      "country_ratio_total_error_pct": 11.9
+      "ml_candidate_total_bias_pct": -59.1,
+      "fixed_ratio_total_bias_pct": 4.5,
+      "country_specific_ratio": 3.39,
+      "country_specific_ratio_total_bias_pct": 11.9
     },
     "Greece": {
       "actual_viirs": 20194,
       "raw_modis": 6312,
-      "model_total_error_pct": 14.5,
-      "simple_ratio_total_error_pct": -1.1,
-      "country_ratio": 3.5,
-      "country_ratio_total_error_pct": 9.3
+      "ml_candidate_total_bias_pct": 14.5,
+      "fixed_ratio_total_bias_pct": -1.1,
+      "country_specific_ratio": 3.5,
+      "country_specific_ratio_total_bias_pct": 9.3
     },
     "Hungary": {
       "actual_viirs": 3777,
       "raw_modis": 1067,
-      "model_total_error_pct": -33.3,
-      "simple_ratio_total_error_pct": -10.7,
-      "country_ratio": 3.08,
-      "country_ratio_total_error_pct": -13.0
+      "ml_candidate_total_bias_pct": -33.3,
+      "fixed_ratio_total_bias_pct": -10.7,
+      "country_specific_ratio": 3.08,
+      "country_specific_ratio_total_bias_pct": -13
     },
     "Italy": {
       "actual_viirs": 52461,
       "raw_modis": 12593,
-      "model_total_error_pct": -17.0,
-      "simple_ratio_total_error_pct": -24.1,
-      "country_ratio": 3.5,
-      "country_ratio_total_error_pct": -16.1
+      "ml_candidate_total_bias_pct": -17,
+      "fixed_ratio_total_bias_pct": -24.1,
+      "country_specific_ratio": 3.5,
+      "country_specific_ratio_total_bias_pct": -16.1
     },
     "Poland": {
       "actual_viirs": 5362,
       "raw_modis": 1056,
-      "model_total_error_pct": -57.4,
-      "simple_ratio_total_error_pct": -37.7,
-      "country_ratio": 3.89,
-      "country_ratio_total_error_pct": -23.4
+      "ml_candidate_total_bias_pct": -57.4,
+      "fixed_ratio_total_bias_pct": -37.7,
+      "country_specific_ratio": 3.89,
+      "country_specific_ratio_total_bias_pct": -23.4
     },
     "Portugal": {
       "actual_viirs": 31285,
       "raw_modis": 10754,
-      "model_total_error_pct": 14.4,
-      "simple_ratio_total_error_pct": 8.7,
-      "country_ratio": 2.69,
-      "country_ratio_total_error_pct": -7.6
+      "ml_candidate_total_bias_pct": 14.4,
+      "fixed_ratio_total_bias_pct": 8.7,
+      "country_specific_ratio": 2.69,
+      "country_specific_ratio_total_bias_pct": -7.6
     },
     "Romania": {
       "actual_viirs": 30694,
       "raw_modis": 8162,
-      "model_total_error_pct": -12.5,
-      "simple_ratio_total_error_pct": -15.9,
-      "country_ratio": 3.33,
-      "country_ratio_total_error_pct": -11.4
+      "ml_candidate_total_bias_pct": -12.5,
+      "fixed_ratio_total_bias_pct": -15.9,
+      "country_specific_ratio": 3.33,
+      "country_specific_ratio_total_bias_pct": -11.4
     },
     "Spain": {
       "actual_viirs": 57328,
       "raw_modis": 18218,
-      "model_total_error_pct": 2.3,
-      "simple_ratio_total_error_pct": 0.5,
-      "country_ratio": 3.3,
-      "country_ratio_total_error_pct": 4.8
+      "ml_candidate_total_bias_pct": 2.3,
+      "fixed_ratio_total_bias_pct": 0.5,
+      "country_specific_ratio": 3.3,
+      "country_specific_ratio_total_bias_pct": 4.8
     },
     "Sweden": {
       "actual_viirs": 1951,
       "raw_modis": 410,
-      "model_total_error_pct": -70.2,
-      "simple_ratio_total_error_pct": -33.5,
-      "country_ratio": 3.65,
-      "country_ratio_total_error_pct": -23.2
+      "ml_candidate_total_bias_pct": -70.2,
+      "fixed_ratio_total_bias_pct": -33.5,
+      "country_specific_ratio": 3.65,
+      "country_specific_ratio_total_bias_pct": -23.2
     },
     "Turkey": {
       "actual_viirs": 96484,
       "raw_modis": 31804,
-      "model_total_error_pct": -0.1,
-      "simple_ratio_total_error_pct": 4.2,
-      "country_ratio": 3.15,
-      "country_ratio_total_error_pct": 3.8
+      "ml_candidate_total_bias_pct": -0.1,
+      "fixed_ratio_total_bias_pct": 4.2,
+      "country_specific_ratio": 3.15,
+      "country_specific_ratio_total_bias_pct": 3.8
     },
     "Ukraine": {
       "actual_viirs": 206097,
       "raw_modis": 61384,
-      "model_total_error_pct": 2.5,
-      "simple_ratio_total_error_pct": -5.8,
-      "country_ratio": 3.04,
-      "country_ratio_total_error_pct": -9.3
+      "ml_candidate_total_bias_pct": 2.5,
+      "fixed_ratio_total_bias_pct": -5.8,
+      "country_specific_ratio": 3.04,
+      "country_specific_ratio_total_bias_pct": -9.3
+    }
+  },
+  "validation_scope": "Scores describe detection-count agreement on non-empty spatial block-months, not individual fires, burned area, ignition, or spread.",
+  "input_provenance": {
+    "csv_files": 624,
+    "sha256": "02fa83a49fa0aa38b8d6f65f226e1d7e63144e9f24d68a452c0d381f68749469",
+    "filtered_rows_by_year": {
+      "modis": {
+        "2001": 54591,
+        "2002": 52122,
+        "2003": 54146,
+        "2004": 60832,
+        "2005": 84941,
+        "2006": 63331,
+        "2007": 74544,
+        "2008": 84423,
+        "2009": 79512,
+        "2010": 51540,
+        "2011": 77464,
+        "2012": 61057,
+        "2013": 44112,
+        "2014": 72846,
+        "2015": 81163,
+        "2016": 59578,
+        "2017": 74429,
+        "2018": 37215,
+        "2019": 54223,
+        "2020": 46541,
+        "2021": 36821,
+        "2022": 39974,
+        "2023": 33551,
+        "2024": 45521,
+        "2025": 47584
+      },
+      "viirs": {
+        "2012": 175703,
+        "2013": 140534,
+        "2014": 216740,
+        "2015": 255296,
+        "2016": 189235,
+        "2017": 226408,
+        "2018": 123402,
+        "2019": 177612,
+        "2020": 159208,
+        "2021": 132164,
+        "2022": 130098,
+        "2023": 113168,
+        "2024": 152232,
+        "2025": 157291
+      }
     }
   },
   "intensity": {
     "frp_ratio": 0.724,
     "region_month_r2_raw_modis": -0.779,
-    "region_month_r2_corrected": 0.483
+    "region_month_r2_fixed_ratio": 0.483
+  },
+  "seen_cell_candidate_ratio": 2.602,
+  "ml_candidate_unseen_cell_uplift": 1.216,
+  "candidate_models_on_modis_seen_cell_months": {
+    "ml_ratio_model": {
+      "mae": 5.91,
+      "r2": 0.841
+    },
+    "seen_cell_ratio": {
+      "mae": 6.39,
+      "r2": 0.835
+    }
+  },
+  "candidate_models_on_modis_seen_blocks": {
+    "ml_ratio_model": {
+      "mae": 19.7,
+      "r2": 0.942
+    },
+    "seen_cell_ratio": {
+      "mae": 23.2,
+      "r2": 0.929
+    }
+  },
+  "validation": {
+    "target": "filtered VIIRS S-NPP hotspot detections",
+    "years": "2022-2025",
+    "unit": "country × 2-degree spatial block × month with at least one sensor detection",
+    "n_units": 10437,
+    "fixed_ratio": {
+      "mae": 18.2,
+      "r2": 0.943,
+      "total_estimate": 526981.88
+    },
+    "raw_modis": {
+      "mae": 37.6,
+      "r2": 0.497,
+      "total": 166630
+    },
+    "ml_candidate": {
+      "mae": 18.3,
+      "r2": 0.898,
+      "total_estimate": 535330
+    },
+    "limitations": "Scores describe detection-count agreement on non-empty spatial block-months, not individual fires, burned area, ignition, or spread."
   }
 }

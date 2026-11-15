@@ -36,7 +36,7 @@ export function formatP(p: number): string {
   return p < 0.001 ? "p < 0.001" : `p = ${p.toFixed(3)}`;
 }
 
-/** One sentence about the trend, with the raw-record warning where it matters. */
+/** One sentence about the hotspot-detection trend, with the raw-record warning. */
 export function describeTrend(table: CalendarTable): string {
   const { test } = trendOf(table);
   if (!test) return "Choose at least 3 years to test for a trend.";
@@ -44,12 +44,13 @@ export function describeTrend(table: CalendarTable): string {
   const per = `${formatTotal(Math.abs(test.slope))} ${unit} per year`;
   const sentence =
     test.direction === "none"
-      ? `No clear trend from ${table.firstYear} to ${table.lastYear} (${formatP(test.p)}). Ups and downs of this size happen by chance.`
-      : `Fire activity is ${test.direction} by about ${per} from ${table.firstYear} to ${table.lastYear}. This is unlikely to be chance (${formatP(test.p)}).`;
+      ? `No statistically clear monotonic trend in hotspot detections from ${table.firstYear} to ${table.lastYear} (Mann–Kendall ${formatP(test.p)}).`
+      : `The selected record shows a ${test.direction} monotonic trend in hotspot detections of about ${per} from ${table.firstYear} to ${table.lastYear} (Mann–Kendall ${formatP(test.p)}).`;
+  const caution = "This test does not adjust for serial correlation or repeated selection of date ranges.";
   if (table.record === "raw" && table.firstYear < VIIRS_FIRST_YEAR && table.lastYear >= VIIRS_FIRST_YEAR) {
-    return `${sentence} Careful: the raw record jumps in ${VIIRS_FIRST_YEAR} because the newer satellite sees more fires, which looks like a rise. Use the corrected record for trends.`;
+    return `${sentence} The raw record switches from MODIS to VIIRS in ${VIIRS_FIRST_YEAR}; that sensor change can look like a change in detections. ${caution}`;
   }
-  return sentence;
+  return `${sentence} ${caution}`;
 }
 
 export interface ExtentSeries {
@@ -84,8 +85,7 @@ export function extentByMonth(rows: readonly CellRow[], options: ExtentOptions):
 }
 
 /**
- * How many of the chosen years each square had any fire. A square that burns
- * every year is a fire hotspot; one that burned once had a single event.
+ * How many chosen years each square had at least one filtered detection.
  */
 export function burnFrequency(rows: readonly CellRow[], options: ExtentOptions): SquareValue[] {
   const { record, measure, firstYear, lastYear } = options;
@@ -105,20 +105,19 @@ export function burnFrequency(rows: readonly CellRow[], options: ExtentOptions):
 }
 
 /**
- * The warning for extent and frequency. The correction scales up the older
- * satellite's counts, but cannot add fire in squares where it saw none, so
- * before 2012 fewer squares burn than the newer satellite would have shown.
+ * The warning for extent and frequency. Count scaling cannot create detections
+ * in squares that the older sensor never observed as fire.
  */
 export function extentCaution(firstYear: number): string | null {
   if (firstYear >= VIIRS_FIRST_YEAR) return null;
-  return `Before ${VIIRS_FIRST_YEAR}, fewer squares show fire in both records: the older satellite missed small fires, and the correction raises its counts but cannot add squares where it saw nothing. Compare years from ${VIIRS_FIRST_YEAR} on.`;
+  return `Before ${VIIRS_FIRST_YEAR}, fewer grid squares have a retained detection: the correction raises MODIS counts but cannot add cells MODIS did not detect. Treat pre-${VIIRS_FIRST_YEAR} spatial extent as incomplete; compare extent from ${VIIRS_FIRST_YEAR} onward.`;
 }
 
-/** One sentence on how often squares burn: "Half of the 660 squares …". */
+/** One sentence on how often grid squares had a filtered hotspot detection. */
 export function describeFrequency(frequency: readonly SquareValue[], years: number): string {
-  if (!frequency.length) return "No square had fire in the chosen years.";
+  if (!frequency.length) return "No square had a filtered hotspot detection in the chosen years.";
   const mid = Math.floor(median(frequency.map((s) => s.value)) ?? 0);
   const every = frequency.filter((s) => s.value === years).length;
-  const half = `Half of the ${formatTotal(frequency.length)} squares with fire burned in at least ${mid} of the ${years} years`;
-  return every > 0 ? `${half}; ${formatTotal(every)} burned every year.` : `${half}.`;
+  const half = `Half of the ${formatTotal(frequency.length)} squares with detections had at least one in ${mid} of the ${years} years`;
+  return every > 0 ? `${half}; ${formatTotal(every)} had a detection in every year.` : `${half}.`;
 }

@@ -12,25 +12,34 @@ The final build plan for the web app. We work one step at a time: build, validat
 | 1 | Scaffold the Next.js app in `web/` | Committed |
 | 2 | Project shell (start page) | Committed |
 | 3 | Data contract, data files and loader | Committed |
-| 4 | Core logic library with tests | Not started |
-| 5 | Country menu and calendar | Not started |
-| 6 | Raw / corrected switch and date range | Not started |
-| 7 | Map with fire squares | Not started |
-| 8 | Region selection: draw, latitude and longitude box | Not started |
-| 9 | Findings and comparison panel | Not started |
-| 10 | Trend, extent and frequency views | Not started |
-| 11 | Downloads and shareable link | Not started |
-| 12 | Method page | Not started |
-| 13 | Live data route (NASA key) | Not started |
-| 14 | Pipeline upgrades (parallel track) | Not started |
-| 15 | Polish and accessibility | Not started |
+| 4 | Core logic library with tests | Validated |
+| 5 | Country menu and calendar | Validated |
+| 6 | Raw / corrected switch and date range | Validated |
+| 7 | Map with fire squares | Validated |
+| 8 | Region selection: draw, latitude and longitude box | Validated |
+| 9 | Findings and comparison panel | Validated |
+| 10 | Trend, extent and frequency views | Validated |
+| 11 | Downloads and shareable link | Not built |
+| 12 | Method page | In progress (method and validation in report/README) |
+| 13 | Live data route (NASA key) | Not built |
+| 14 | Pipeline upgrades and global cases | In progress |
+| 15 | Polish and accessibility | Validated for current Europe view |
 | 16 | Deployment and submission | Not started |
+| 17 | Six global study areas, FireDNA and sensor comparison | Built; five archives pending |
 
 Status values: Not started, In progress, Built, Validated, Committed.
 
 What was done in each finished step, and why, is written down in the [step log](#step-log) below. Add an entry when a step is built and validated.
 
 ## Step log
+
+### Step 17. Six global case studies and FireDNA
+
+- **What:** added the six named study areas to the explorer, made the currently supported Southern Europe case use Portugal, Spain and Greece, and added a detection-profile fingerprint plus an MODIS/VIIRS comparison panel.
+- **Why:** gives the project a cross-region scientific story and makes the sensor harmonization visible next to its seasonal findings.
+- **Method:** FireDNA uses monthly harmonized detection counts; the sensor panel compares MODIS, VIIRS and the fixed Europe-wide ratio during the overlap years. The selected-area error is descriptive because the ratio was trained on the same European overlap; the independent evidence remains the pipeline's held-out 2022–2025 validation.
+- **Coverage:** the committed archive contains Europe only. The other five cases are shown as data-pending, never as zero-fire. Target study windows are displayed on each region card.
+- **Next:** fetch spatially filtered FIRMS archives for the five remaining areas, validate observation coverage, and only then enable their analysis.
 
 ### Step 0. Data pipeline and prototype (committed, 91ded23)
 

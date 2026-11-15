@@ -107,6 +107,22 @@ export function viewBounds(rows: readonly CellRow[]): Bounds | null {
   ];
 }
 
+/** Bounds containing every loaded grid cell, for multi-country views. */
+export function allCellBounds(rows: readonly CellRow[]): Bounds | null {
+  if (!rows.length) return null;
+  let west = Infinity;
+  let south = Infinity;
+  let east = -Infinity;
+  let north = -Infinity;
+  for (const row of rows) {
+    west = Math.min(west, row[COL.lon]);
+    east = Math.max(east, row[COL.lon]);
+    south = Math.min(south, row[COL.lat]);
+    north = Math.max(north, row[COL.lat]);
+  }
+  return [west - HALF_CELL, south - HALF_CELL, east + HALF_CELL, north + HALF_CELL];
+}
+
 export interface SquareProperties {
   value: number;
   /** 0 to 1, from value / max: square root by default, as in the calendar colours. */

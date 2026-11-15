@@ -10,6 +10,8 @@
   --soft: #eef2ec;
   --nav: #142b29;
   --shadow: 0 5px 24px #173b2910;
+  --font-geist-sans: Arial, "Helvetica Neue", sans-serif;
+  --font-geist-mono: "SFMono-Regular", Consolas, monospace;
 }
 
 @theme inline {
@@ -62,10 +64,30 @@ button, a, select, input { transition: background-color 150ms, border-color 150m
 .section-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 16px; }
 .section-heading h2 { font-size: 23px; font-weight: 560; letter-spacing: -.7px; margin-top: 5px; }
 .dataset-badge { display: inline-flex; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: 100px; padding: 8px 12px; color: var(--muted); font-size: 11px; }
+.study-area-section { border: 1px solid var(--line); border-radius: 12px; padding: 18px; background: var(--soft); }
+.study-area-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.study-area-card { display: flex; min-height: 96px; flex-direction: column; align-items: flex-start; justify-content: center; gap: 5px; border: 1px solid var(--line); border-radius: 9px; padding: 12px 14px; text-align: left; background: var(--surface); }
+.study-area-card:hover, .study-area-card[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.study-area-card strong { font-size: 14px; font-weight: 550; }
+.study-area-region, .study-area-status { font-size: 10px; color: var(--muted); }
+.study-area-status.available { color: #35725a; }
+.study-area-status.pending { color: var(--accent); }
+.metric-tile { display: flex; min-width: 0; flex-direction: column; gap: 5px; border-radius: 8px; padding: 11px; background: var(--soft); }
+.metric-tile span { color: var(--muted); font-size: 10px; line-height: 1.4; }
+.metric-tile strong { overflow-wrap: anywhere; font-size: 16px; font-weight: 560; }
+.dna-months { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 5px; height: 92px; align-items: end; }
+.dna-month { display: flex; height: 100%; min-width: 0; flex-direction: column; justify-content: end; align-items: center; gap: 5px; }
+.dna-bar-track { display: flex; height: 68px; width: 100%; align-items: end; justify-content: center; border-bottom: 1px solid var(--line); }
+.dna-bar-track span { display: block; width: min(100%, 18px); min-height: 0; border-radius: 3px 3px 0 0; background: linear-gradient(0deg, #a74619, #e4a35a); }
+.dna-month small { font-size: 8px; color: var(--muted); }
+.comparison-table th, .comparison-table td { border-bottom: 1px solid var(--line); padding: 8px 5px; text-align: left; }
+.comparison-table td { text-align: right; font-variant-numeric: tabular-nums; }
+.comparison-table thead { color: var(--muted); font-size: 11px; }
 .filter-bar { padding: 19px 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); column-gap: 24px; }
 .filter-bar > div:first-child { flex: 1; }
 .filter-bar label, #record-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
 .filter-bar select { background: var(--background); min-height: 40px; font-size: 13px; border-radius: 7px; }
+.filter-bar select:disabled { cursor: not-allowed; opacity: .65; }
 .filter-bar select#country { width: 100%; min-width: 180px; }
 .filter-bar [role="group"] > div { background: var(--background); border-radius: 7px; }
 .filter-bar button { min-height: 34px; font-size: 12px; }
@@ -115,6 +137,7 @@ footer { background: var(--surface); margin-top: 24px; }
   .coverage-numbers { margin-top: 8px; }
   .coverage-numbers strong { font-size: 32px; }
   .sensor-timeline { display: none; }
+  .study-area-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-title { letter-spacing: -1.3px; }
 }
 @media (max-width: 520px) {
@@ -127,6 +150,11 @@ footer { background: var(--surface); margin-top: 24px; }
   .filter-bar { padding: 16px; gap: 14px; }
   .filter-bar > div:first-child { flex-basis: 100%; }
   .calendar-card, .spatial-card { padding: 16px; }
+  .study-area-section { padding: 14px; }
+  .study-area-grid { grid-template-columns: 1fr; }
+  .study-area-card { min-height: 76px; }
+  .metric-tile { padding: 8px; }
+  .metric-tile strong { font-size: 14px; }
   .section-heading h2 { font-size: 21px; }
   .dataset-badge { font-size: 10px; }
   .coverage-numbers strong span { font-size: 11px; }

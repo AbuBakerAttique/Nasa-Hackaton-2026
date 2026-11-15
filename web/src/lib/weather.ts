@@ -26,6 +26,9 @@ export const WEATHER_VARIABLES = [
   "precipitation",
 ] as const;
 
+/** Only the fields needed for the month-level wind summary. */
+export const MONTHLY_WIND_VARIABLES = ["wind_speed_10m", "wind_direction_10m"] as const;
+
 /** Units we ask for and expect back. A different unit is treated as an error. */
 export const WEATHER_UNITS = {
   wind_speed_10m: "km/h",
@@ -43,6 +46,15 @@ export interface WeatherQuery {
   lon: number;
   /** "YYYY-MM-DD", a UTC calendar day. */
   date: string;
+}
+
+/** A complete UTC calendar month at one sampling point. */
+export interface WeatherMonthQuery {
+  lat: number;
+  lon: number;
+  year: number;
+  /** 1 = January, 12 = December. */
+  month: number;
 }
 
 /** One hour of weather. Any value may be missing in the source. */
@@ -68,6 +80,40 @@ export interface WeatherDay {
   grid: { lat: number; lon: number; elevation: number | null };
   /** 24 entries, 00:00 to 23:00 UTC. */
   hours: WeatherHour[];
+}
+
+/** One hourly wind sample within a month. */
+export interface WeatherMonthHour {
+  /** ISO UTC hour, for example "2024-08-01T00:00". */
+  time: string;
+  windSpeed: number | null;
+  /** Compass direction the wind comes FROM. */
+  windFrom: number | null;
+}
+
+/** Hourly wind values for one calendar month at one ERA5 grid point. */
+export interface WeatherMonth {
+  query: WeatherMonthQuery;
+  grid: { lat: number; lon: number; elevation: number | null };
+  expectedHours: number;
+  hours: WeatherMonthHour[];
+}
+
+export interface DailyWindMean {
+  day: number;
+  windSpeed: number | null;
+}
+
+export interface MonthlyWindSummary {
+  meanSpeed: number | null;
+  medianSpeed: number | null;
+  validSpeedHours: number;
+  expectedHours: number;
+  /** Most common 16-point compass sector, in degrees FROM. */
+  prevailingFrom: number | null;
+  prevailingShare: number | null;
+  directionSamples: number;
+  dailyMeans: DailyWindMean[];
 }
 
 /** An error whose message is written for the person using the app. */
@@ -104,10 +150,28 @@ export function normaliseQuery(query: WeatherQuery): WeatherQuery {
   return { lat, lon, date: query.date };
 }
 
+/** Checks and rounds a month query using the same coordinate rules as a daily query. */
+export function normaliseMonthQuery(query: WeatherMonthQuery): WeatherMonthQuery {
+  if (!Number.isInteger(query.year) || query.year < 1900 || query.year > 2200) {
+    throw new WeatherError("The year must be a whole number between 1900 and 2200.");
+  }
+  if (!Number.isInteger(query.month) || query.month < 1 || query.month > 12) {
+    throw new WeatherError("The month must be a whole number from 1 to 12.");
+  }
+  const coords = normaliseQuery({ lat: query.lat, lon: query.lon, date: monthRange(query.year, query.month).min });
+  return { lat: coords.lat, lon: coords.lon, year: query.year, month: query.month };
+}
+
 /** Cache key: model, point and day. */
 export function weatherKey(query: WeatherQuery): string {
   const q = normaliseQuery(query);
   return `${WEATHER_MODEL}|${q.lat}|${q.lon}|${q.date}`;
+}
+
+/** Cache key for one point and one month. */
+export function weatherMonthKey(query: WeatherMonthQuery): string {
+  const q = normaliseMonthQuery(query);
+  return `${WEATHER_MODEL}|${q.lat}|${q.lon}|${q.year}-${String(q.month).padStart(2, "0")}`;
 }
 
 /** The request URL for one day at one point. */
@@ -124,6 +188,24 @@ export function buildWeatherUrl(query: WeatherQuery): string {
     wind_speed_unit: "kmh",
     temperature_unit: "celsius",
     precipitation_unit: "mm",
+    timeformat: "iso8601",
+  });
+  return `${WEATHER_ENDPOINT}?${params}`;
+}
+
+/** Open-Meteo request for hourly 10 m wind over an entire UTC month. */
+export function buildWeatherMonthUrl(query: WeatherMonthQuery): string {
+  const q = normaliseMonthQuery(query);
+  const { min, max } = monthRange(q.year, q.month);
+  const params = new URLSearchParams({
+    latitude: String(q.lat),
+    longitude: String(q.lon),
+    start_date: min,
+    end_date: max,
+    hourly: MONTHLY_WIND_VARIABLES.join(","),
+    models: WEATHER_MODEL,
+    timezone: WEATHER_TIMEZONE,
+    wind_speed_unit: "kmh",
     timeformat: "iso8601",
   });
   return `${WEATHER_ENDPOINT}?${params}`;
@@ -192,6 +274,94 @@ export function parseWeather(value: unknown, query: WeatherQuery): WeatherDay {
     query: q,
     grid: { lat: latitude, lon: longitude, elevation: typeof elevation === "number" ? elevation : null },
     hours,
+  };
+}
+
+/** Validates the complete hourly wind series returned for a calendar month. */
+export function parseWeatherMonth(value: unknown, query: WeatherMonthQuery): WeatherMonth {
+  const q = normaliseMonthQuery(query);
+  if (!isRecord(value)) throw new WeatherError("The weather service sent an unreadable answer.");
+  if (value.error === true) {
+    const reason = typeof value.reason === "string" ? value.reason : "no reason given";
+    throw new WeatherError(`The weather service refused the request: ${reason}`);
+  }
+  if (value.utc_offset_seconds !== 0) throw new WeatherError("The weather answer is not in UTC.");
+
+  const { latitude, longitude, elevation, hourly, hourly_units: units } = value;
+  if (typeof latitude !== "number" || typeof longitude !== "number" || !isRecord(hourly) || !isRecord(units)) {
+    throw new WeatherError("The monthly weather answer is missing its location or hourly wind data.");
+  }
+  for (const [name, unit] of [["wind_speed_10m", WEATHER_UNITS.wind_speed_10m], ["wind_direction_10m", WEATHER_UNITS.wind_direction_10m]]) {
+    if (units[name] !== unit) throw new WeatherError(`The monthly weather answer gives ${name} in "${String(units[name])}", expected "${unit}".`);
+  }
+
+  const { min, max } = monthRange(q.year, q.month);
+  const dayCount = Number(max.slice(-2));
+  const expectedHours = dayCount * 24;
+  const times = hourly.time;
+  if (!Array.isArray(times) || times.length !== expectedHours) {
+    throw new WeatherError(`The weather answer does not hold ${expectedHours} UTC hours for ${min.slice(0, 7)}.`);
+  }
+  const columns = Object.fromEntries(MONTHLY_WIND_VARIABLES.map((name) => {
+    const column = hourly[name];
+    if (!Array.isArray(column) || column.length !== expectedHours) {
+      throw new WeatherError(`The monthly weather answer is missing ${name}.`);
+    }
+    return [name, column as unknown[]];
+  })) as Record<(typeof MONTHLY_WIND_VARIABLES)[number], unknown[]>;
+
+  const hours = times.map((time, i): WeatherMonthHour => {
+    const day = Math.floor(i / 24) + 1;
+    const hour = i % 24;
+    const expected = `${q.year}-${String(q.month).padStart(2, "0")}-${String(day).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00`;
+    if (time !== expected) throw new WeatherError(`The weather answer has the time "${String(time)}", expected ${expected}.`);
+    return {
+      time: expected,
+      windSpeed: readValue(columns.wind_speed_10m, i, "wind speed"),
+      windFrom: readValue(columns.wind_direction_10m, i, "wind direction"),
+    };
+  });
+  return {
+    query: q,
+    grid: { lat: latitude, lon: longitude, elevation: typeof elevation === "number" ? elevation : null },
+    expectedHours,
+    hours,
+  };
+}
+
+/** Summarizes monthly wind while preserving missing samples as missing, not calm. */
+export function summarizeMonthlyWind(month: WeatherMonth): MonthlyWindSummary {
+  const speeds: number[] = [];
+  const directionBins = Array<number>(16).fill(0);
+  const daily = Array.from({ length: month.expectedHours / 24 }, () => ({ sum: 0, count: 0 }));
+  let directionSamples = 0;
+  for (const sample of month.hours) {
+    const dayIndex = Number(sample.time.slice(8, 10)) - 1;
+    if (sample.windSpeed !== null) {
+      speeds.push(sample.windSpeed);
+      daily[dayIndex].sum += sample.windSpeed;
+      daily[dayIndex].count += 1;
+    }
+    if (sample.windFrom !== null && sample.windSpeed !== null && sample.windSpeed >= 1) {
+      directionBins[Math.round(normaliseDegrees(sample.windFrom) / 22.5) % 16] += 1;
+      directionSamples += 1;
+    }
+  }
+  const sorted = [...speeds].sort((a, b) => a - b);
+  const medianSpeed = sorted.length
+    ? sorted.length % 2 ? sorted[(sorted.length - 1) / 2] : (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+    : null;
+  const prevailingCount = Math.max(0, ...directionBins);
+  const prevailingIndex = prevailingCount ? directionBins.indexOf(prevailingCount) : -1;
+  return {
+    meanSpeed: speeds.length ? speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length : null,
+    medianSpeed,
+    validSpeedHours: speeds.length,
+    expectedHours: month.expectedHours,
+    prevailingFrom: prevailingIndex < 0 ? null : prevailingIndex * 22.5,
+    prevailingShare: prevailingCount && directionSamples ? prevailingCount / directionSamples : null,
+    directionSamples,
+    dailyMeans: daily.map((item, i) => ({ day: i + 1, windSpeed: item.count ? item.sum / item.count : null })),
   };
 }
 

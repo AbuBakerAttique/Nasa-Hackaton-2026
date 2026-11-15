@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { MonthPick } from "@/components/CalendarGrid";
 import type { WeatherMarker } from "@/components/FireMap";
 import { useWeatherDay } from "@/hooks/useWeatherDay";
-import { describeWind, formatUtcTime, isValidDate, monthRange, windTowards, type WeatherHour } from "@/lib/weather";
+import { useWeatherMonth } from "@/hooks/useWeatherMonth";
+import { describeWind, formatUtcTime, isValidDate, monthRange, summarizeMonthlyWind, windTowards, type WeatherHour } from "@/lib/weather";
 import type { WeatherState } from "@/lib/weatherApi";
+import type { MonthlyWeatherState } from "@/lib/weatherApi";
+import type { MonthlyWindSummary } from "@/lib/weather";
 
 export interface HistoricalWeather {
   point: { lat: number; lon: number } | null;
@@ -22,26 +25,37 @@ export interface HistoricalWeather {
   minDate: string;
   maxDate: string;
   state: WeatherState;
+  monthlyState: MonthlyWeatherState;
+  monthlySummary: MonthlyWindSummary | null;
   /** The chosen hour's values, when the day has loaded and an hour is chosen. */
   selected: WeatherHour | null;
   marker: WeatherMarker | null;
 }
 
 /**
- * State for the historical weather panel: sampling point, day and hour, and
- * the loaded day. The calendar month only narrows the date picker; the day
- * and hour must always be chosen explicitly, because one hour of wind never
- * stands for a whole month.
+ * State for daily and calendar-month ERA5 wind at a selected point.
  */
 export function useHistoricalWeather(
   month: MonthPick | null,
   firstYear: number,
   lastYear: number,
+  suggestedPoint: { lat: number; lon: number } | null = null,
 ): HistoricalWeather {
-  const [point, setPoint] = useState<{ lat: number; lon: number } | null>(null);
+  const [chosenPoint, setChosenPoint] = useState<{
+    monthKey: string | null;
+    point: { lat: number; lon: number } | null;
+  }>({ monthKey: null, point: null });
   const [picking, setPicking] = useState(false);
   const [chosenDate, setDate] = useState<string | null>(null);
   const [hour, setHour] = useState<number | null>(null);
+
+  // Start each selected calendar month at its most active fire grid cell.
+  // A manually selected point is remembered for that month only.
+  const monthKey = month ? `${month.year}-${month.month}` : null;
+  const point = chosenPoint.monthKey === monthKey ? chosenPoint.point : suggestedPoint;
+  const setPoint = useCallback((nextPoint: { lat: number; lon: number } | null) => {
+    setChosenPoint({ monthKey, point: nextPoint });
+  }, [monthKey]);
 
   const { min: minDate, max: maxDate } = month
     ? monthRange(month.year, month.month)
@@ -54,6 +68,15 @@ export function useHistoricalWeather(
   const query = useMemo(() => (point && date ? { lat: point.lat, lon: point.lon, date } : null), [point, date]);
   const state = useWeatherDay(query);
   const selected = state.status === "ready" && hour !== null ? (state.day.hours[hour] ?? null) : null;
+  const monthQuery = useMemo(
+    () => point && month ? { lat: point.lat, lon: point.lon, year: month.year, month: month.month } : null,
+    [point, month],
+  );
+  const monthlyState = useWeatherMonth(monthQuery);
+  const monthlySummary = useMemo(
+    () => monthlyState.status === "ready" ? summarizeMonthlyWind(monthlyState.month) : null,
+    [monthlyState],
+  );
 
   const marker = useMemo((): WeatherMarker | null => {
     if (!point) return null;
@@ -80,6 +103,8 @@ export function useHistoricalWeather(
     minDate,
     maxDate,
     state,
+    monthlyState,
+    monthlySummary,
     selected,
     marker,
   };

@@ -11,6 +11,7 @@ import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import type { TerraDraw } from "terra-draw";
 import { squaresGeoJSON, type Bounds, type SquareValue } from "@/lib/map";
 import type { LonLat } from "@/lib/region";
+import { observationGeoJSON, type Observation } from "@/lib/observations";
 
 /** OpenFreeMap: free vector tiles, no key or account needed. */
 const STYLE_URL = "https://tiles.openfreemap.org/styles/positron";
@@ -83,6 +84,9 @@ export function FireMap({
   weatherPick = false,
   onWeatherPick,
   weatherMarker = null,
+  observations = [],
+  selectedObservationId = null,
+  onObservationSelect,
 }: {
   squares: readonly SquareValue[];
   /** Value that gets the darkest colour. */
@@ -104,6 +108,9 @@ export function FireMap({
   onWeatherPick?: (lat: number, lon: number) => void;
   /** The weather sampling point and wind arrow, or null. */
   weatherMarker?: WeatherMarker | null;
+  observations?: readonly Observation[];
+  selectedObservationId?: string | null;
+  onObservationSelect?: (id: string) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
@@ -113,8 +120,15 @@ export function FireMap({
   const pickRef = useRef(weatherPick);
   const markerClassRef = useRef<typeof Marker | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const observationClick = useRef(onObservationSelect);
+  const drawing = useRef(drawMode);
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [globe, setGlobe] = useState(false);
+  useEffect(() => {
+    observationClick.current = onObservationSelect;
+    drawing.current = drawMode;
+  }, [onObservationSelect, drawMode]);
 
   // The drawing callback can change on every render; the map listener reads the latest.
   useEffect(() => {
@@ -137,11 +151,11 @@ export function FireMap({
           container: container.current,
           style: STYLE_URL,
           bounds: [-10, 35, 40, 60],
-          dragRotate: false,
-          pitchWithRotate: false,
+          dragRotate: true,
+          pitchWithRotate: true,
           attributionControl: { compact: true },
         });
-        map.touchZoomRotate.disableRotation();
+        map.touchZoomRotate.enableRotation();
         markerClassRef.current = MarkerClass;
         // A click chooses the weather point only while that mode is on, so it
         // never clashes with drawing a region.
@@ -162,6 +176,21 @@ export function FireMap({
             },
           });
           map.addSource("region", { type: "geojson", data: outlineGeoJSON(null) });
+          map.addSource("observations", { type: "geojson", data: observationGeoJSON([], null) });
+          map.addLayer({
+            id: "observations", type: "circle", source: "observations",
+            paint: {
+              "circle-radius": ["case", ["get", "selected"], 9, 6],
+              "circle-color": ["match", ["get", "sensor"], "MODIS", "#c65b22", "#167e79"],
+              "circle-stroke-color": ["case", ["get", "selected"], "#142b29", "#ffffff"],
+              "circle-stroke-width": ["case", ["get", "selected"], 3, 1],
+            },
+          });
+          map.on("click", "observations", (event) => {
+            if (pickRef.current || drawing.current) return;
+            const id = event.features?.[0]?.properties?.id;
+            if (typeof id === "string") observationClick.current?.(id);
+          });
           map.addLayer({
             id: "region",
             type: "line",
@@ -212,11 +241,30 @@ export function FireMap({
     };
   }, []);
 
+  // Globe view gives a full-world overview; users can rotate it with a drag.
+  // Returning to the flat map restores the currently selected area.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!ready || !map) return;
+    if (globe) {
+      map.setProjection({ type: "globe" });
+      map.jumpTo({ center: [0, 18], zoom: 0.8, pitch: 0, bearing: 0 });
+    } else {
+      map.setProjection({ type: "mercator" });
+      if (bounds) map.fitBounds(bounds, { padding: 24, duration: 0 });
+    }
+  }, [ready, globe, bounds]);
+
   // Redraw the squares when the data changes.
   useEffect(() => {
     if (!ready) return;
     mapRef.current?.getSource<GeoJSONSource>("squares")?.setData(squaresGeoJSON(squares, max, scale));
   }, [ready, squares, max, scale]);
+
+  useEffect(() => {
+    if (!ready) return;
+    mapRef.current?.getSource<GeoJSONSource>("observations")?.setData(observationGeoJSON(observations, selectedObservationId));
+  }, [ready, observations, selectedObservationId]);
 
   // Show the chosen region's outline.
   useEffect(() => {
@@ -271,11 +319,18 @@ export function FireMap({
   }
 
   return (
-    <div
-      ref={container}
-      role="region"
-      aria-label={label}
-      className="h-80 w-full overflow-hidden rounded-md border border-line sm:h-[28rem]"
-    />
+    <div className="relative">
+      <div
+        ref={container}
+        role="region"
+        aria-label={label}
+        className="h-80 w-full overflow-hidden rounded-md border border-line sm:h-[28rem]"
+      />
+      <div className="absolute left-3 top-3 z-10 flex gap-1 rounded-lg border border-line bg-background/95 p-1 shadow-sm" role="group" aria-label="Map view">
+        <button type="button" aria-pressed={!globe} onClick={() => setGlobe(false)} className={`rounded px-3 py-1.5 text-xs font-medium ${!globe ? "bg-accent text-background" : "hover:bg-muted/20"}`}>2D map</button>
+        <button type="button" aria-pressed={globe} onClick={() => setGlobe(true)} className={`rounded px-3 py-1.5 text-xs font-medium ${globe ? "bg-accent text-background" : "hover:bg-muted/20"}`}>Rotatable globe</button>
+      </div>
+      {globe && <p className="pointer-events-none absolute bottom-3 left-3 z-10 rounded bg-background/90 px-2 py-1 text-xs text-muted">Drag to rotate · Wheel or pinch to zoom</p>}
+    </div>
   );
 }

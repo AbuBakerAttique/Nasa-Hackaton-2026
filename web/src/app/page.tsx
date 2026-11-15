@@ -1,4 +1,5 @@
 import { FireCalendar } from "@/components/FireCalendar";
+import { ObservationReplay } from "@/components/ObservationReplay";
 import { parseIndex } from "@/lib/data";
 // The list of countries is small, so it is built into the page.
 // The country files themselves are loaded in the browser when one is chosen.
@@ -18,13 +19,14 @@ export default function Home() {
         </div>
         <div className="coverage-card">
           <p className="eyebrow">THE OBSERVATION RECORD</p>
-          <div className="coverage-numbers"><div><strong>{index.lastYear - index.firstYear + 1}<span>years</span></strong><p>{index.firstYear} — {index.lastYear}</p></div><div><strong>{index.countries.length}<span>countries</span></strong><p>Across Europe</p></div></div>
+          <div className="coverage-numbers"><div><strong>{index.lastYear - index.firstYear + 1}<span>years</span></strong><p>{index.firstYear} — {index.lastYear}</p></div><div><strong>6<span>study areas</span></strong><p>1 ready · 5 need data</p></div></div>
           <div className="sensor-timeline" aria-label="MODIS observations from 2001, VIIRS from 2012"><div><span>MODIS</span><i /></div><div><span>VIIRS</span><i /></div></div>
-          <p className="mt-4 text-xs leading-relaxed text-muted">Historical estimates before 2012. VIIRS observations from 2012 onward.</p>
+          <p className="mt-4 text-xs leading-relaxed text-muted">The current European archive covers 16 countries. Five other global study areas still need their NASA records added.</p>
         </div>
       </section>
       <div className="mt-9 sm:mt-12">
         <FireCalendar index={index} />
+        <ObservationReplay />
       </div>
     </>
   );
