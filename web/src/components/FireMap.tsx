@@ -98,10 +98,12 @@ export function FireMap({
   observations = [],
   selectedObservationId = null,
   onObservationSelect,
+  darkMode = false,
   onCellSelect,
   animateEntry = false,
 }: {
   animateEntry?: boolean;
+  darkMode?: boolean;
   onCellSelect?: (lat: number, lon: number) => void;
   squares: readonly SquareValue[];
   /** Value that gets the darkest colour. */
@@ -129,6 +131,7 @@ export function FireMap({
 }) {
   const entryAnimated = useRef(false);
   const initialEntry = useRef(animateEntry);
+  const initialDarkMode = useRef(darkMode);
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const drawRef = useRef<TerraDraw | null>(null);
@@ -184,6 +187,17 @@ export function FireMap({
         });
         map.on("load", () => {
           if (!map || cancelled) return;
+          if (initialDarkMode.current) {
+            for (const layer of map.getStyle().layers ?? []) {
+              if (layer.type === "background") map.setPaintProperty(layer.id, "background-color", "#091725");
+              else if (layer.type === "fill") map.setPaintProperty(layer.id, "fill-color", layer.id.includes("water") ? "#102b3c" : "#142737");
+              else if (layer.type === "line") map.setPaintProperty(layer.id, "line-color", "#314858");
+              else if (layer.type === "symbol" && layer.layout?.["text-field"]) {
+                map.setPaintProperty(layer.id, "text-color", "#abc4d7");
+                map.setPaintProperty(layer.id, "text-halo-color", "#102132");
+              }
+            }
+          }
           map.addSource("squares", { type: "geojson", data: hotspotDots([], 1) });
           map.addLayer({
             id: "squares",

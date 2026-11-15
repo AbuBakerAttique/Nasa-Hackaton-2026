@@ -267,3 +267,14 @@ footer { background: var(--surface); margin-top: 24px; }
 .map-period-controls label { display: block; margin-bottom: 5px; font-size: 11px; color: var(--muted); }
 .map-period-controls select { min-width: 150px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); font-size: 13px; }
 .map-period-controls p { padding-bottom: 8px; color: var(--muted); font-size: 12px; }
+body:has(.explorer-space) { --background: #050d17; --foreground: #dce9f5; --muted: #8da7bc; --line: #22374b; --accent: #8ed3e1; --surface: #0b1a29; --soft: #102437; --shadow: 0 8px 30px #0003; background: radial-gradient(ellipse at 70% 10%,#102538 0%,#050d17 65%); }
+body:has(.explorer-space) .page-width { width: min(100%,1760px); padding-inline: 28px; }
+body:has(.explorer-space) .site-header { background: #071320; border-bottom: 1px solid #22374b; }
+body:has(.explorer-space) .brand-symbol { color: #8ed3e1; }
+body:has(.explorer-space) footer { background: #071320; }
+body:has(.explorer-space) .source-chip { color: #a9d3e5; background: #102c3e; border-color: #2b4e64; }
+body:has(.explorer-space) .heatmap-table td[data-selected] { outline-color: #e6fbff; }
+body:has(.explorer-space) .insight-card, body:has(.explorer-space) .chart-card { background: #0b1a29; }
+body:has(.explorer-space) .maplibregl-ctrl-attrib { color: #d4e7f7; background: #102437de; }
+body:has(.explorer-space) .maplibregl-ctrl-attrib a { color: #b9d8ec; }
+@media(max-width:650px) { body:has(.explorer-space) .page-width { padding-inline: 12px; } }

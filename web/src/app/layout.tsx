@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -20,9 +21,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <span>Fire<span className="font-normal opacity-65">Chronos</span><span className="brand-caption">EUROPE FIRE INTELLIGENCE</span></span>
             </a>
             <nav aria-label="Main navigation" className="flex items-center gap-5 text-sm sm:gap-8">
-              <a href="#explorer" className="nav-link">Explore</a>
-              <a href="#spatial-view" className="nav-link">Map</a>
-              <a href="#trends" className="nav-link">Insights</a>
+              <Link href="/?explore=1#explorer" className="nav-link">Explore</Link>
+              <Link href="/?explore=1#spatial-view" className="nav-link">Map</Link>
+              <Link href="/statistics" className="nav-link">Statistics</Link>
               <span className="mission-tag hidden sm:inline-flex">SPACE APPS / 2026</span>
             </nav>
           </div>

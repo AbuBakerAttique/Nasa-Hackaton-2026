@@ -8,9 +8,10 @@ import countryLabels from "@/lib/country-labels.json";
 const labels = [...countryLabels].sort((a, b) => a.rank - b.rank);
 
 /** Texture mapped sphere, with a fixed light source and drag rotation. */
-export function OrbitEarth() {
+export function OrbitEarth({ onReady }: { onReady?: (element: HTMLCanvasElement) => void } = {}) {
+  const readyCallback = useRef(onReady);
   const canvas = useRef<HTMLCanvasElement>(null);
-  const rotation = useRef(-1.6);
+  const rotation = useRef(15 * Math.PI / 180);
   const dragging = useRef<number | null>(null);
   const showLabels = useRef(true);
   const [labelsVisible, setLabelsVisible] = useState(true);
@@ -33,21 +34,23 @@ export function OrbitEarth() {
       const pixels = sourceContext.getImageData(0, 0, source.width, source.height).data;
       const size = 600;
       const output = ctx.createImageData(size, size);
+      const tilt = 45 * Math.PI / 180;
       const points: { index: number; u: number; v: number; light: number }[] = [];
       for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
         const nx = (x - size / 2) / (size / 2 - 2), ny = (y - size / 2) / (size / 2 - 2);
         const r2 = nx * nx + ny * ny;
         if (r2 > 1) continue;
         const nz = Math.sqrt(1 - r2);
-        points.push({ index: (y * size + x) * 4, u: Math.atan2(nx, nz) / (2 * Math.PI), v: .5 + Math.asin(ny) / Math.PI,
+        points.push({ index: (y * size + x) * 4, u: Math.atan2(nx, ny * Math.sin(tilt) + nz * Math.cos(tilt)) / (2 * Math.PI), v: .5 - Math.asin(Math.max(-1, Math.min(1, -ny * Math.cos(tilt) + nz * Math.sin(tilt)))) / Math.PI,
           light: .25 + .75 * Math.max(0, nx * -.38 + ny * -.3 + nz * .87) });
       }
       const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       let previous = 0;
+      const rotationStarts = performance.now() + 7000;
       function draw(time: number) {
         if (cancelled) return;
         if (time - previous > 45) {
-          if (!reducedMotion && dragging.current === null) rotation.current += Math.min(time - previous, 60) * .000035;
+          if (!reducedMotion && time > rotationStarts && dragging.current === null) rotation.current += Math.min(time - previous, 60) * .000035;
           previous = time;
           for (const p of points) {
             const u = ((p.u + rotation.current / (2 * Math.PI) + .5) % 1 + 1) % 1;
@@ -66,11 +69,11 @@ export function OrbitEarth() {
             for (const label of labels) {
               const latitude = label.lat * Math.PI / 180;
               const longitude = label.lon * Math.PI / 180 - rotation.current;
-              const z = Math.cos(latitude) * Math.cos(longitude);
+              const z = Math.sin(latitude) * Math.sin(tilt) + Math.cos(latitude) * Math.cos(longitude) * Math.cos(tilt);
               // Hide names on the back and near the rim of the globe.
               if (z < .25) continue;
               const x = size / 2 + (size / 2 - 2) * Math.cos(latitude) * Math.sin(longitude);
-              const y = size / 2 - (size / 2 - 2) * Math.sin(latitude);
+              const y = size / 2 - (size / 2 - 2) * (Math.sin(latitude) * Math.cos(tilt) - Math.cos(latitude) * Math.cos(longitude) * Math.sin(tilt));
               const w = ctx!.measureText(label.name).width + 10;
               if (occupied.some(box => Math.abs(box.y - y) < 17 && Math.abs(box.x - x) < (box.w + w) / 2)) continue;
               occupied.push({ x, y, w });
@@ -84,7 +87,8 @@ export function OrbitEarth() {
         }
         frame = requestAnimationFrame(draw);
       }
-      frame = requestAnimationFrame(draw);
+      draw(46);
+      if (canvas.current) readyCallback.current?.(canvas.current);
     };
     return () => { cancelled = true; cancelAnimationFrame(frame); };
   }, []);

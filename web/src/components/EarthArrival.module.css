@@ -28,7 +28,7 @@
 .heading h1 { margin: 12px 0; font-size: clamp(30px, 3.5vw, 50px); line-height: 1.1; font-weight: 500; letter-spacing: -1.5px; }
 .heading > p:last-child { color: #9db2c3; font-size: 12px; }
 .stage { flex: 1 1 0; container-type: size; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 250px; }
-.stage :global(.real-earth-wrap) { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; animation: appear 1.1s ease-out both; }
+.stage :global(.real-earth-wrap) { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; animation: none; }
 .stage :global(.real-earth) { width: min(calc(100cqh - 100px), 76vw, 820px); height: auto; border-radius: 50%; display: block; cursor: grab; touch-action: none; box-shadow: 0 0 2px 1px #b1e7ff90, 0 0 35px #3598dc45, 0 0 130px #2474ae35; }
 .stage :global(.real-earth:active) { cursor: grabbing; }
 .stage :global(.earth-rotation-controls) { display: flex; align-items: center; justify-content: center; gap: 20px; margin-top: 0; flex: 0 0 auto; color: #94b7cc; font: 9px monospace; letter-spacing: 2px; }
@@ -40,3 +40,9 @@
 @keyframes appear { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
 @media (max-height: 600px) { .screen { padding: 14px; } .heading h1 { margin: 7px; font-size: 27px; } .stage :global(.real-earth) { width: min(calc(100cqh - 90px), 65vw); } .stage :global(.earth-rotation-controls) { margin-top: 0; } .credit { display: none; } }
 @media (prefers-reduced-motion: reduce) { .stage :global(.real-earth-wrap) { animation: none; } }
+.transitioning { background: transparent; overflow: visible; }
+.transitioning::after { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(ellipse at 50% 48%, #112c43 0%, #050f1b 42%, #01040a 80%); animation: arrivalBackground 2.2s ease both; }
+.transitioning .stage :global(.real-earth-wrap) { animation: none; }
+.transitioning .heading, .transitioning .bottom, .transitioning .stage :global(.earth-rotation-controls), .transitioning .stage :global(.real-earth-wrap > button) { opacity: 0; pointer-events: none; }
+@keyframes arrivalBackground { from { opacity: 0; } 65%, to { opacity: 1; } }
+.heading, .bottom, .stage :global(.earth-rotation-controls), .stage :global(.real-earth-wrap > button) { transition: opacity .6s ease; }

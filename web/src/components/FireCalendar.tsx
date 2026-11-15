@@ -2,7 +2,7 @@
 
 // Country menu, region, record switch, date range, the burning calendar and the map.
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { LocationSearch, type MapLocation } from "./LocationSearch";
 import workspace from "./ExplorerWorkspace.module.css";
 import { CalendarGrid, type MonthPick } from "@/components/CalendarGrid";
@@ -17,6 +17,7 @@ import { useCells } from "@/hooks/useCells";
 import { useHistoricalWeather } from "@/hooks/useHistoricalWeather";
 import harmonizationReport from "../../public/data/report.json";
 import { buildTable, rowValue, type RecordKind } from "@/lib/calendar";
+import type { ExplorerSelection } from "@/lib/explorer-selection";
 import { monthName } from "@/lib/format";
 import { allCellBounds, squareValues, viewBounds } from "@/lib/map";
 import { burnFrequency, describeFrequency, extentByMonth, extentCaution } from "@/lib/trends";
@@ -39,21 +40,22 @@ const RECORDS: { id: RecordKind; label: string }[] = [
 
 const fieldClass = "mt-1 rounded-md border border-line bg-background px-3 py-2";
 
-export function FireCalendar({ index }: { index: DataIndex }) {
+export function FireCalendar({ index, view = "explore", initialSelection }: { index: DataIndex; view?: "explore" | "statistics"; initialSelection?: ExplorerSelection }) {
   const [countryId, setCountryId] = useState(
-    index.countries.some((c) => c.id === DEFAULT_COUNTRY) ? DEFAULT_COUNTRY : (index.countries[0]?.id ?? ""),
+    initialSelection?.countryId ?? (index.countries.some((c) => c.id === DEFAULT_COUNTRY) ? DEFAULT_COUNTRY : (index.countries[0]?.id ?? "")),
   );
+  const optionsRef = useRef<HTMLDetailsElement>(null);
   const [location, setLocation] = useState<(MapLocation & { period: string }) | null>(null);
   const [selectedCell, setSelectedCell] = useState<{lat: number; lon: number} | null>(null);
-  const [record, setRecord] = useState<RecordKind>("corrected");
-  const [firstYear, setFirstYear] = useState(Math.max(index.firstYear, studyAreaYears(DEFAULT_STUDY_AREA)[0]));
-  const [lastYear, setLastYear] = useState(Math.min(index.lastYear, studyAreaYears(DEFAULT_STUDY_AREA)[1]));
-  const [picked, setPicked] = useState<MonthPick | null>(null);
-  const [region, setRegion] = useState<Region | null>(null);
+  const [record, setRecord] = useState<RecordKind>(initialSelection?.record ?? "corrected");
+  const [firstYear, setFirstYear] = useState(initialSelection?.firstYear ?? Math.max(index.firstYear, studyAreaYears(DEFAULT_STUDY_AREA)[0]));
+  const [lastYear, setLastYear] = useState(initialSelection?.lastYear ?? Math.min(index.lastYear, studyAreaYears(DEFAULT_STUDY_AREA)[1]));
+  const [picked, setPicked] = useState<MonthPick | null>(initialSelection?.picked ?? null);
+  const [region, setRegion] = useState<Region | null>(initialSelection?.region ?? null);
   const [drawMode, setDrawMode] = useState<DrawMode | null>(null);
   /** What the map colours: fire in the chosen period, or how many years each square burned. */
   const [mapView, setMapView] = useState<"amount" | "frequency">("amount");
-  const [studyAreaId, setStudyAreaId] = useState<string | null>("southern-europe");
+  const [studyAreaId, setStudyAreaId] = useState<string | null>(initialSelection ? initialSelection.studyAreaId : "southern-europe");
   const studyArea = STUDY_AREAS.find((area) => area.id === studyAreaId) ?? null;
 
   const country = index.countries.find((c) => c.id === countryId);
@@ -114,6 +116,7 @@ export function FireCalendar({ index }: { index: DataIndex }) {
   // Use the most active fire grid cell in the selected month as the automatic
   // weather sampling point. Users can move it to another point on the map.
   const suggestedWeatherPoint = useMemo(() => {
+    if (selectedCell && cellInfo) return selectedCell;
     if (!rows || !month) return null;
     const cells = squareValues(rows, { record, measure: "count", firstYear, lastYear, month });
     const hottest = cells.reduce<(typeof cells)[number] | null>(
@@ -121,7 +124,7 @@ export function FireCalendar({ index }: { index: DataIndex }) {
       null,
     );
     return hottest ? { lat: hottest.lat, lon: hottest.lon } : null;
-  }, [rows, record, firstYear, lastYear, month]);
+  }, [rows, record, firstYear, lastYear, month, selectedCell, cellInfo]);
 
   // Historical weather context. Separate from the fire data: it never changes it.
   const weather = useHistoricalWeather(month, index.firstYear, index.lastYear, suggestedWeatherPoint);
@@ -131,10 +134,7 @@ export function FireCalendar({ index }: { index: DataIndex }) {
     setDrawMode(mode);
     if (mode) weather.setPicking(false);
   };
-  const choosePicking = (on: boolean) => {
-    weather.setPicking(on);
-    if (on) setDrawMode(null);
-  };
+
 
   // The map uses the same idea: both records on one colour scale.
   const squares = useMemo(() => {
@@ -191,42 +191,103 @@ export function FireCalendar({ index }: { index: DataIndex }) {
 
   const years = Array.from({ length: index.lastYear - index.firstYear + 1 }, (_, i) => index.firstYear + i);
 
-  return (
-    <section id="explorer" className="explorer" aria-labelledby="calendar-heading">
-      <div className="section-heading">
-        <div><p className="eyebrow">01 / EXPLORE THE RECORD</p><h2 id="calendar-heading">Fire activity explorer</h2></div>
-        <span className="dataset-badge"><span className="status-dot" /> Historical observations</span>
-      </div>
-
-      <div id="spatial-view" className={workspace.workspace}>
-        <div className={workspace.header}>
-          <div><p className="eyebrow">FIRECHRONOS / SPATIAL EXPLORER</p><h2>Europe, in focus.</h2><p>Discover when and where satellite hotspots were observed.</p></div>
-          <span className={workspace.live}><span /> NASA FIRMS archive</span>
-        </div>
-        <div className={workspace.body}>
-          <aside className={workspace.sidebar} aria-label="Explore map controls">
-            <p className={workspace.step}>01 / CHOOSE YOUR VIEW</p>
-            <LocationSearch onSelect={point => {
-              setLocation({...point, period: locationPeriod}); setSelectedCell(null); setDrawMode(null);
-              setRegion({kind:"box", south: Math.max(-90,point.lat-.5), north:Math.min(90,point.lat+.5), west:Math.max(-180,point.lon-.5), east:Math.min(180,point.lon+.5)});
-            }} />
-            {location && <div className={workspace.locationNote}><strong>{location.label}</strong><p>{location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°</p><p>{sources.length === 0 ? "This location is outside the available fire archive. No fire assessment is available here." : "Showing the surrounding area. No dot means no retained detection in the selected period; it does not confirm there was no fire."}</p><button type="button" onClick={()=>{setLocation(null);setRegion(null);setStudyAreaId(DEFAULT_STUDY_AREA.id);}}>Back to Europe</button></div>}
-            <label className={workspace.areaLabel} htmlFor="map-area">Study area</label>
+  const selectionQuery = new URLSearchParams({selection: JSON.stringify({countryId,studyAreaId,firstYear,lastYear,record,picked:month,region})}).toString();
+  const filters = (        <div className={workspace.topFilters} aria-label="Explorer filters">
+          <div className={workspace.topArea}>            <label className={workspace.areaLabel} htmlFor="map-area">Study area</label>
             <select id="map-area" className={workspace.areaSelect} value={studyArea ? "europe" : countryId} onChange={event => {
               setRegion(null); setDrawMode(null); setLocation(null);
               if (event.target.value === "europe") setStudyAreaId(DEFAULT_STUDY_AREA.id);
               else { setStudyAreaId(null); setCountryId(event.target.value); }
             }}><option value="europe">All Europe · 16 countries</option>{index.countries.map(country=><option key={country.id} value={country.id}>{country.name}</option>)}</select>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="font-semibold">Where: {mapPeriod}</h3>
-          {mapView === "frequency" ? null : month ? (
-            <button type="button" onClick={() => setPicked(null)} className="text-sm text-accent underline">
-              Show all months again
-            </button>
-          ) : (
-            <p className="text-sm text-muted">Click a month in the calendar to see it on the map.</p>
-          )}
+</div>
+        <div>
+          <label htmlFor="first-year" className="block text-sm font-medium">
+            From
+          </label>
+          <select
+            id="first-year"
+            value={firstYear}
+            onChange={(event) => setFirstYear(Number(event.target.value))}
+            className={fieldClass}
+          >
+            {years
+              .filter((y) => y <= lastYear)
+              .map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+          </select>
         </div>
+
+        <div>
+          <label htmlFor="last-year" className="block text-sm font-medium">
+            To
+          </label>
+          <select
+            id="last-year"
+            value={lastYear}
+            onChange={(event) => setLastYear(Number(event.target.value))}
+            className={fieldClass}
+          >
+            {years
+              .filter((y) => y >= firstYear)
+              .map((y) => (
+                <option key={y} value={y}>
+                  {y}
+                </option>
+              ))}
+          </select>
+        </div>
+
+        <div role="group" aria-labelledby="record-label">
+          <span id="record-label" className="block text-sm font-medium">
+            Record
+          </span>
+          <div className="mt-1 inline-flex rounded-md border border-line p-0.5">
+            {RECORDS.map((r) => (
+              <button
+                key={r.id}
+                type="button"
+                aria-pressed={record === r.id}
+                onClick={() => setRecord(r.id)}
+                className={
+                  "rounded px-3 py-1.5 text-sm " +
+                  (record === r.id ? "bg-accent font-medium text-background" : "text-muted hover:text-foreground")
+                }
+              >
+                {r.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        </div>
+);
+
+  return (
+    <section id="explorer" className="explorer" aria-labelledby="calendar-heading">
+      <div className="section-heading">
+        <div><p className="eyebrow">01 / EXPLORE THE RECORD</p><h2 id="calendar-heading">{view === "statistics" ? "Statistics & methodology" : "Fire activity explorer"}</h2></div>
+        <a className={workspace.pageLink} href={view === "statistics" ? `/?${selectionQuery}` : `/statistics?${selectionQuery}`}>{view === "statistics" ? "← Back to map & calendar" : "View statistics →"}</a>
+      </div>
+
+      {view === "explore" && <div id="spatial-view" className={workspace.workspace}>
+        <div className={workspace.header}>
+          <div><p className="eyebrow">FIRECHRONOS / SPATIAL EXPLORER</p><h2>Europe, in focus.</h2><p>Discover when and where satellite hotspots were observed.</p></div>
+          <span className={workspace.live}><span /> NASA FIRMS archive</span>
+        </div>
+        {filters}
+        <div className={workspace.topOptions}>            <details ref={optionsRef} className={workspace.filterDrawer} onKeyDown={event => { if (event.key === "Escape" && optionsRef.current) optionsRef.current.open = false; }}><summary>Search & map options</summary>
+            <div className={workspace.optionsPopover}>
+              <div className={workspace.optionsHeading}><h3>Explore your area</h3><button type="button" aria-label="Close search and map options" onClick={()=>{if(optionsRef.current) optionsRef.current.open=false;}}>×</button></div>
+              <div className={workspace.optionsGrid}><div className={workspace.searchSection}>
+            <LocationSearch onSelect={point => {
+              setLocation({...point, period: locationPeriod}); setSelectedCell(null); setDrawMode(null);
+              if (optionsRef.current) optionsRef.current.open = false;
+              setRegion({kind:"box", south: Math.max(-90,point.lat-.5), north:Math.min(90,point.lat+.5), west:Math.max(-180,point.lon-.5), east:Math.min(180,point.lon+.5)});
+            }} />
+            {location && <div className={workspace.locationNote}><strong>{location.label}</strong><p>{location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°</p><p>{sources.length === 0 ? "This location is outside the available fire archive. No fire assessment is available here." : "Showing the surrounding area. No dot means no retained detection in the selected period; it does not confirm there was no fire."}</p><button type="button" onClick={()=>{setLocation(null);setRegion(null);setStudyAreaId(DEFAULT_STUDY_AREA.id);}}>Back to Europe</button></div>}
+              </div><div className={workspace.displaySection}><h3>Map display</h3>
         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
           <div role="group" aria-labelledby="map-view-label" className="flex items-center gap-2">
             <span id="map-view-label" className="text-sm font-medium">
@@ -289,14 +350,45 @@ export function FireCalendar({ index }: { index: DataIndex }) {
           }}><option value="all">All months</option>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{monthName(i+1)}</option>)}</select></div>
           <p aria-live="polite">{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`} · {squares?.[record].length.toLocaleString() ?? "…"} cells with detections{rows && squares?.[record].length === 0 ? " · No retained detections in this selection." : ""}</p>
         </div>
-            <p className={workspace.note}>Hotspots are satellite detections. Repeated observations can belong to the same fire.</p>
+              </div></div>
+              <p className={workspace.optionsFootnote}>Select a calendar tile to update the map. Dots represent aggregated satellite detections.</p>
+            </div></details></div>
+        <div className={workspace.body}>
+          <aside className={workspace.sidebar} aria-label="Explore map controls">
+            <div className={workspace.calendarIntro}><p className="eyebrow">SELECT A MONTH → SEE IT ON THE MAP</p><h3>Your fire calendar</h3><p>Each coloured tile opens that month’s satellite record.</p></div>
+      <div className={workspace.calendarPanel} aria-live="polite" aria-busy={data.status === "loading"}>
+        <div className="panel-heading"><div><p className="eyebrow">THE BURNING CALENDAR</p><h3>Fire detections per month</h3></div><span className="text-xs text-muted">{firstYear} — {lastYear}</span></div>
+        <div className="calendar-key"><span>Less</span><span className="heat-ramp" /><span>More detections</span>{record === "corrected" && firstYear < VIIRS_FIRST_YEAR && <><span className="estimate-key" /><span>Estimated before 2012</span></>}<span className="ml-auto">Select a month to explore it</span></div>
+        {data.status === "loading" && <p className="text-muted">Loading {sourceNames}…</p>}
+        {data.status === "error" && (
+          <p role="alert" className="rounded-md border border-accent px-3 py-2 text-accent">
+            {data.message}
+          </p>
+        )}
+        {tables && (
+          <CalendarGrid
+            table={tables[record]}
+            areaName={areaName}
+            max={max}
+            selected={month}
+            onSelect={(pick) =>
+              setPicked(month && month.year === pick.year && month.month === pick.month ? null : pick)
+            }
+          />
+        )}
+      </div>
+
+
           </aside>
           <div className={workspace.mapColumn}>
             <div className={workspace.mapHeading}><span>{areaName}</span><span>{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</span></div>
         <div className={workspace.mapFrame}>
           <FireMap
             animateEntry
-            onCellSelect={(lat, lon) => setSelectedCell({lat, lon})}
+            darkMode
+            onCellSelect={(lat, lon) => {
+              setSelectedCell({lat, lon}); weather.setPoint({lat, lon}); weather.setPicking(false);
+            }}
             squares={(mapView === "frequency" ? frequency : squares?.[record]) ?? []}
             max={mapView === "frequency" ? yearCount : squareMax}
             scale={mapView === "frequency" ? "linear" : "sqrt"}
@@ -328,110 +420,29 @@ export function FireCalendar({ index }: { index: DataIndex }) {
                 </dl>
                 <div className={workspace.causeNote}><h4>Why did this happen?</h4><p>The cause is unknown from these satellite records. NASA classifies this hotspot as a presumed vegetation fire. That classification does not tell us whether lightning, an accidental ignition, deliberate burning, or another cause started it. Confirming a cause requires local incident reports or other evidence.</p><p>Wind can influence the movement of an existing fire, and dry conditions can help vegetation burn. Weather context alone cannot confirm the cause of this detection.</p></div>
                 <p>0.25° grid cell. Repeated detections are retained. FRP sums are experimental and do not measure total fire energy. Sensor counts are separate observations for the selected period.</p>
+                <details className={workspace.dialogWeather} open>
+                  <summary>Weather at this location</summary>
+                  {!month && <p>Select a month in the calendar for its wind summary, or choose a day below for detailed weather.</p>}
+                  <WeatherPanel weather={weather} month={month} onPickingChange={() => {}} allowPointPicking={false} />
+                </details>
             </section>}
         </div>
             <p className={workspace.cellHint}>Click a fire dot to inspect its grid-cell details. Dots show aggregated grid centres, not exact fire locations.</p>
             <div className={workspace.legend}><span className="heat-ramp" /><span>Fewer detections</span><span>More detections</span><span className={workspace.resolution}>0.25° spatial grid</span></div>
           </div>
         </div>
-        <WeatherPanel weather={weather} month={month} onPickingChange={choosePicking} />
       </div>
+      }
+      {view === "statistics" && <>
+        {filters}
+        {data.status === "loading" && <p role="status" className="mt-5">Loading statistics for {areaName}…</p>}
+        {data.status === "error" && <p role="alert" className="mt-5">{data.message}</p>}
       <div className="europe-scope mt-5">
         <span className="europe-scope-mark" aria-hidden="true">EU</span>
         <div><p className="eyebrow">EUROPE ARCHIVE</p><p className="mt-1 text-sm text-muted">NASA FIRMS observations across 16 European countries · {index.firstYear}–{index.lastYear}</p></div>
-        {studyArea && <button type="button" className="ml-auto text-sm text-accent underline" onClick={() => { setStudyAreaId(null); setFirstYear(index.firstYear); setLastYear(index.lastYear); }}>Choose a country</button>}
+
       </div>
 
-      <div className="filter-bar mt-5 flex flex-wrap items-end gap-4">
-        {studyArea ? (
-          <div>
-            <span className="block text-sm font-medium">Study area</span>
-            <div className={`${fieldClass} min-w-48`} aria-label={`Selected study area: ${studyArea.name}`}>{studyArea.name}</div>
-          </div>
-        ) : (
-          <div>
-            <label htmlFor="country" className="block text-sm font-medium">Country</label>
-            <select
-              id="country"
-              value={countryId}
-              onChange={(event) => {
-                setCountryId(event.target.value);
-                setFirstYear(index.firstYear);
-                setLastYear(index.lastYear);
-                setRegion(null);
-                setDrawMode(null);
-              }}
-              className={`${fieldClass} min-w-48`}
-            >
-              {index.countries.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
-
-        <div>
-          <label htmlFor="first-year" className="block text-sm font-medium">
-            From
-          </label>
-          <select
-            id="first-year"
-            value={firstYear}
-            onChange={(event) => setFirstYear(Number(event.target.value))}
-            className={fieldClass}
-          >
-            {years
-              .filter((y) => y <= lastYear)
-              .map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        <div>
-          <label htmlFor="last-year" className="block text-sm font-medium">
-            To
-          </label>
-          <select
-            id="last-year"
-            value={lastYear}
-            onChange={(event) => setLastYear(Number(event.target.value))}
-            className={fieldClass}
-          >
-            {years
-              .filter((y) => y >= firstYear)
-              .map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-          </select>
-        </div>
-
-        <div role="group" aria-labelledby="record-label">
-          <span id="record-label" className="block text-sm font-medium">
-            Record
-          </span>
-          <div className="mt-1 inline-flex rounded-md border border-line p-0.5">
-            {RECORDS.map((r) => (
-              <button
-                key={r.id}
-                type="button"
-                aria-pressed={record === r.id}
-                onClick={() => setRecord(r.id)}
-                className={
-                  "rounded px-3 py-1.5 text-sm " +
-                  (record === r.id ? "bg-accent font-medium text-background" : "text-muted hover:text-foreground")
-                }
-              >
-                {r.label}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
 
       <p className="mt-4 text-sm">
         <span className="font-medium">Area:</span> {areaName}
@@ -467,27 +478,6 @@ export function FireCalendar({ index }: { index: DataIndex }) {
         </p>
       )}
 
-      <div className="calendar-card mt-5" aria-live="polite" aria-busy={data.status === "loading"}>
-        <div className="panel-heading"><div><p className="eyebrow">THE BURNING CALENDAR</p><h3>Fire detections per month</h3></div><span className="text-xs text-muted">{firstYear} — {lastYear}</span></div>
-        <div className="calendar-key"><span>Less</span><span className="heat-ramp" /><span>More detections</span>{record === "corrected" && firstYear < VIIRS_FIRST_YEAR && <><span className="estimate-key" /><span>Estimated before 2012</span></>}<span className="ml-auto">Select a month to explore it</span></div>
-        {data.status === "loading" && <p className="text-muted">Loading {sourceNames}…</p>}
-        {data.status === "error" && (
-          <p role="alert" className="rounded-md border border-accent px-3 py-2 text-accent">
-            {data.message}
-          </p>
-        )}
-        {tables && (
-          <CalendarGrid
-            table={tables[record]}
-            areaName={areaName}
-            max={max}
-            selected={month}
-            onSelect={(pick) =>
-              setPicked(month && month.year === pick.year && month.month === pick.month ? null : pick)
-            }
-          />
-        )}
-      </div>
 
       {tables && (
         <div className="mt-6">
@@ -505,6 +495,7 @@ export function FireCalendar({ index }: { index: DataIndex }) {
       {rows && studyAreaIsAvailable(studyArea ?? STUDY_AREAS[0], index) && (
         <FireSciencePanel rows={rows} firstYear={firstYear} lastYear={lastYear} ratio={harmonizationReport.regional_ratio_all_cells} record={record} />
       )}
+      </>}
     </section>
   );
 }

@@ -1,0 +1,25 @@
+.screen { position: fixed; inset: 0; z-index: 90; width: 100%; height: 100svh; margin: 0; padding: clamp(20px,4vh,42px) clamp(18px,5vw,72px) 24px; box-sizing: border-box; display: grid; grid-template-rows: auto minmax(0,1fr) auto; gap: 12px; overflow: hidden; color: #eaf2fa; background: radial-gradient(ellipse at 65% 55%,#142c3b 0%,#07101b 45%,#02060d 100%); }
+.screen::before { content:""; position:absolute; inset:0; pointer-events:none; background-image:radial-gradient(1px 1px at 12px 31px,#e4f2ff 95%,transparent),radial-gradient(1px 1px at 87px 103px,#cad8eb 95%,transparent); background-size:191px 173px,257px 239px; opacity:.45; }
+.heading { position:relative; z-index:2; max-width:100%; text-align:center; }
+.heading > p:first-child { font:9px/1.6 monospace; letter-spacing:2px; color:#82a3b8; overflow-wrap:anywhere; }
+.heading h1 { margin:14px 0 10px; font-size:clamp(28px,3.5vw,52px); line-height:1.1; letter-spacing:-1.8px; font-weight:500; }
+.heading h1 span { color:#8ba5b5; }
+.heading > p:last-child { margin:0 auto; max-width:480px; font-size:12px; line-height:1.7; color:#a6bacb; }
+.scene { position:relative; width:100%; min-width:0; min-height:0; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+.scene :global(.solar-canvas) { position:static; width:100%; height:100%; min-height:0; min-width:0; max-width:100%; margin:0; transform:none; }
+.bottom { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:20px; width:100%; }
+.bottom > span { max-width:300px; color:#7d9aae; font:9px/1.8 monospace; letter-spacing:1px; }
+.bottom button { flex-shrink:0; padding:13px 24px; border:1px solid #7fc4cc70; border-radius:7px; color:#d4fffb; background:#123440; font-size:13px; }
+.bottom button:hover { background:#215365; }
+.bottom button:disabled { opacity:.65; cursor:wait; }
+@media(max-width:650px) { .screen { gap:8px; padding:24px 14px; } .heading h1 { font-size:30px; letter-spacing:-1px; } .heading > p:first-child { font-size:8px; letter-spacing:1px; } .bottom { flex-direction:column-reverse; gap:12px; text-align:center; } .bottom button { width:min(100%,300px); } .bottom > span { font-size:8px; } }
+@media(max-height:500px) { .screen { padding:12px 20px; gap:4px; } .heading h1 { font-size:24px; margin:4px; } .heading > p:last-child { display:none; } }
+.approach { position: fixed; inset: 0; z-index: 100; pointer-events: none; overflow: hidden; }
+.approach::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, #112c43, #01040a 80%); animation: approachBackdrop 1.7s ease-in-out both; }
+.approachEarth { position: absolute; border-radius: 50%; background: url('/earth-day.jpg') center / auto 100%; box-shadow: inset -30px -10px 50px #0009, 0 0 35px #3598dc55; animation: fullScreenApproach 1.7s cubic-bezier(.35,0,.15,1) both; }
+@keyframes approachBackdrop { from { opacity: 0; } 60%, to { opacity: 1; } }
+@keyframes fullScreenApproach {
+  from { left: var(--origin-x); top: var(--origin-y); width: var(--origin-size); height: var(--origin-size); transform: translate(-50%, -50%); }
+  to { left: 50%; top: 50%; width: min(60svh, 76vw); height: min(60svh, 76vw); transform: translate(-50%, -50%); }
+}
+@media(prefers-reduced-motion: reduce) { .approachEarth, .approach::before { animation-duration: .1s; } }
