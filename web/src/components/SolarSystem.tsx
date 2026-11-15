@@ -39,7 +39,6 @@ export function SolarSystem({ onEarth, flying = false }: { onEarth: () => void; 
     {planets.map(p=>{const pos=position(p.orbit,p.angle);return <g key={p.name} transform={`translate(${pos.x} ${pos.y})`}>
       {p.name==='Saturn'&&<><ellipse rx="65" ry="18" transform="rotate(-15)" fill="none" stroke="#b9ae87" strokeWidth="9" opacity=".65"/><ellipse rx="73" ry="21" transform="rotate(-15)" fill="none" stroke="#807d69" strokeWidth="3" opacity=".5"/></>}
       {p.name==='Uranus'&&<ellipse rx="12" ry="43" transform="rotate(18)" fill="none" stroke="#a0b5bb" strokeWidth="1.3" opacity=".4"/>}
-      {p.name==='Earth'&&<circle className="earth-beacon" r="25" fill="none" stroke="#83e4ed" opacity=".7"/>}
       <g clipPath={`url(#clip-${p.name})`}>
         <circle r={p.r} fill={`url(#planet-${p.name})`}/>
         <circle r={p.r} fill={`url(#planet-${p.name})`} filter="url(#planet-texture)" opacity=".22"/>

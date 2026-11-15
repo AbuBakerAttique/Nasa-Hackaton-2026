@@ -9,7 +9,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
 import type { GeoJSONSource, Map as MapLibreMap, Marker } from "maplibre-gl";
 import type { TerraDraw } from "terra-draw";
-import { squaresGeoJSON, type Bounds, type SquareValue } from "@/lib/map";
+import { snapToGrid, type Bounds, type SquareValue } from "@/lib/map";
 import type { LonLat } from "@/lib/region";
 import { observationGeoJSON, type Observation } from "@/lib/observations";
 
@@ -23,10 +23,21 @@ const FILL_COLOUR = [
   "interpolate",
   ["linear"],
   ["get", "t"],
-  0, "hsl(38, 90%, 88%)",
+  0, "hsl(34, 85%, 57%)",
   0.5, "hsl(23, 90%, 59%)",
   1, "hsl(8, 90%, 30%)",
 ] as const;
+
+function hotspotDots(squares: readonly SquareValue[], max: number, scale: "sqrt" | "linear" = "sqrt") {
+  return {
+    type: "FeatureCollection" as const,
+    features: squares.map(cell => {
+      const fraction = max > 0 ? Math.min(cell.value / max, 1) : 0;
+      return { type: "Feature" as const, properties: { lat: cell.lat, lon: cell.lon, value: cell.value, t: scale === "sqrt" ? Math.sqrt(fraction) : fraction },
+        geometry: { type: "Point" as const, coordinates: [snapToGrid(cell.lon), snapToGrid(cell.lat)] } };
+    }),
+  };
+}
 
 export type DrawMode = "rectangle" | "polygon";
 
@@ -87,7 +98,11 @@ export function FireMap({
   observations = [],
   selectedObservationId = null,
   onObservationSelect,
+  onCellSelect,
+  animateEntry = false,
 }: {
+  animateEntry?: boolean;
+  onCellSelect?: (lat: number, lon: number) => void;
   squares: readonly SquareValue[];
   /** Value that gets the darkest colour. */
   max: number;
@@ -112,6 +127,8 @@ export function FireMap({
   selectedObservationId?: string | null;
   onObservationSelect?: (id: string) => void;
 }) {
+  const entryAnimated = useRef(false);
+  const initialEntry = useRef(animateEntry);
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<MapLibreMap | null>(null);
   const drawRef = useRef<TerraDraw | null>(null);
@@ -120,6 +137,8 @@ export function FireMap({
   const pickRef = useRef(weatherPick);
   const markerClassRef = useRef<typeof Marker | null>(null);
   const markerRef = useRef<Marker | null>(null);
+  const cellClick = useRef(onCellSelect);
+  useEffect(() => { cellClick.current = onCellSelect; }, [onCellSelect]);
   const observationClick = useRef(onObservationSelect);
   const drawing = useRef(drawMode);
   const [ready, setReady] = useState(false);
@@ -150,7 +169,8 @@ export function FireMap({
         map = new Map({
           container: container.current,
           style: STYLE_URL,
-          bounds: [-10, 35, 40, 60],
+          center: [0, 18],
+          zoom: initialEntry.current ? 0.8 : 3,
           dragRotate: true,
           pitchWithRotate: true,
           attributionControl: { compact: true },
@@ -164,17 +184,26 @@ export function FireMap({
         });
         map.on("load", () => {
           if (!map || cancelled) return;
-          map.addSource("squares", { type: "geojson", data: squaresGeoJSON([], 1) });
+          map.addSource("squares", { type: "geojson", data: hotspotDots([], 1) });
           map.addLayer({
             id: "squares",
-            type: "fill",
+            type: "circle",
             source: "squares",
             paint: {
-              "fill-color": FILL_COLOUR as unknown as string,
-              "fill-opacity": 0.8,
-              "fill-outline-color": "rgba(0, 0, 0, 0.15)",
+              "circle-color": FILL_COLOUR as unknown as string,
+              "circle-radius": ["interpolate", ["linear"], ["zoom"], 2, 1.5, 5, 2.5, 9, 4.5],
+              "circle-opacity": 0.8,
+              "circle-stroke-color": "rgba(90, 40, 10, 0.45)",
+              "circle-stroke-width": 0.4,
             },
           });
+          map.on("click", "squares", event => {
+            if (pickRef.current || drawing.current) return;
+            const properties = event.features?.[0]?.properties;
+            if (typeof properties?.lat === "number" && typeof properties.lon === "number") cellClick.current?.(properties.lat, properties.lon);
+          });
+          map.on("mouseenter", "squares", () => { if (map && !pickRef.current && !drawing.current) map.getCanvas().style.cursor = "pointer"; });
+          map.on("mouseleave", "squares", () => { if (map) map.getCanvas().style.cursor = pickRef.current ? "crosshair" : ""; });
           map.addSource("region", { type: "geojson", data: outlineGeoJSON(null) });
           map.addSource("observations", { type: "geojson", data: observationGeoJSON([], null) });
           map.addLayer({
@@ -251,14 +280,13 @@ export function FireMap({
       map.jumpTo({ center: [0, 18], zoom: 0.8, pitch: 0, bearing: 0 });
     } else {
       map.setProjection({ type: "mercator" });
-      if (bounds) map.fitBounds(bounds, { padding: 24, duration: 0 });
     }
-  }, [ready, globe, bounds]);
+  }, [ready, globe]);
 
   // Redraw the squares when the data changes.
   useEffect(() => {
     if (!ready) return;
-    mapRef.current?.getSource<GeoJSONSource>("squares")?.setData(squaresGeoJSON(squares, max, scale));
+    mapRef.current?.getSource<GeoJSONSource>("squares")?.setData(hotspotDots(squares, max, scale));
   }, [ready, squares, max, scale]);
 
   useEffect(() => {
@@ -274,9 +302,12 @@ export function FireMap({
 
   // Move to the area when it changes, for example a new country.
   useEffect(() => {
-    if (!ready || !bounds) return;
-    mapRef.current?.fitBounds(bounds, { padding: 24, duration: 0 });
-  }, [ready, bounds]);
+    if (!ready || !bounds || globe) return;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const duration = reducedMotion ? 0 : initialEntry.current && !entryAnimated.current ? 1800 : 850;
+    entryAnimated.current = true;
+    mapRef.current?.fitBounds(bounds, { padding: 48, maxZoom: 9, duration });
+  }, [ready, bounds, globe]);
 
   // Crosshair cursor while choosing the weather point.
   useEffect(() => {

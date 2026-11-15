@@ -3,6 +3,8 @@
 // Country menu, region, record switch, date range, the burning calendar and the map.
 
 import { useMemo, useState } from "react";
+import { LocationSearch, type MapLocation } from "./LocationSearch";
+import workspace from "./ExplorerWorkspace.module.css";
 import { CalendarGrid, type MonthPick } from "@/components/CalendarGrid";
 import { FindingsPanel } from "@/components/FindingsPanel";
 import { FireMap, type DrawMode } from "@/components/FireMap";
@@ -14,7 +16,7 @@ import { WeatherPanel } from "@/components/WeatherPanel";
 import { useCells } from "@/hooks/useCells";
 import { useHistoricalWeather } from "@/hooks/useHistoricalWeather";
 import harmonizationReport from "../../public/data/report.json";
-import { buildTable, type RecordKind } from "@/lib/calendar";
+import { buildTable, rowValue, type RecordKind } from "@/lib/calendar";
 import { monthName } from "@/lib/format";
 import { allCellBounds, squareValues, viewBounds } from "@/lib/map";
 import { burnFrequency, describeFrequency, extentByMonth, extentCaution } from "@/lib/trends";
@@ -41,6 +43,8 @@ export function FireCalendar({ index }: { index: DataIndex }) {
   const [countryId, setCountryId] = useState(
     index.countries.some((c) => c.id === DEFAULT_COUNTRY) ? DEFAULT_COUNTRY : (index.countries[0]?.id ?? ""),
   );
+  const [location, setLocation] = useState<(MapLocation & { period: string }) | null>(null);
+  const [selectedCell, setSelectedCell] = useState<{lat: number; lon: number} | null>(null);
   const [record, setRecord] = useState<RecordKind>("corrected");
   const [firstYear, setFirstYear] = useState(Math.max(index.firstYear, studyAreaYears(DEFAULT_STUDY_AREA)[0]));
   const [lastYear, setLastYear] = useState(Math.min(index.lastYear, studyAreaYears(DEFAULT_STUDY_AREA)[1]));
@@ -95,6 +99,18 @@ export function FireCalendar({ index }: { index: DataIndex }) {
   // A picked month outside the chosen years no longer applies.
   const month = picked && picked.year >= firstYear && picked.year <= lastYear ? picked : null;
 
+  const cellInfo = useMemo(() => {
+    if (!selectedCell || !rows) return null;
+    const matches = rows.filter(row => row[COL.lat] === selectedCell.lat && row[COL.lon] === selectedCell.lon &&
+      (month ? row[COL.year] === month.year && row[COL.month] === month.month : row[COL.year] >= firstYear && row[COL.year] <= lastYear));
+    if (!matches.length) return null;
+    return matches.reduce((total, row) => ({
+      count: total.count + rowValue(row, record, "count"), frp: total.frp + rowValue(row, record, "frp"),
+      modis: total.modis + row[COL.modisRaw], viirs: total.viirs + row[COL.viirsRaw],
+      estimated: total.estimated || (record === "corrected" && row[COL.year] < VIIRS_FIRST_YEAR && row[COL.modisRaw] > 0),
+    }), { count: 0, frp: 0, modis: 0, viirs: 0, estimated: false });
+  }, [selectedCell, rows, month, firstYear, lastYear, record]);
+
   // Use the most active fire grid cell in the selected month as the automatic
   // weather sampling point. Users can move it to another point on the map.
   const suggestedWeatherPoint = useMemo(() => {
@@ -140,8 +156,12 @@ export function FireCalendar({ index }: { index: DataIndex }) {
     [rows, record, firstYear, lastYear],
   );
   const yearCount = lastYear - firstYear + 1;
+  const locationPeriod = `${firstYear}/${lastYear}/${month?.year ?? "all"}/${month?.month ?? "all"}/${record}`;
   const bounds = useMemo(() => {
-    if (region) return regionBounds(region);
+    if (location && location.period === locationPeriod) {
+      const mapLatitude = Math.max(-84.5, Math.min(84.5, location.lat));
+      return [Math.max(-180,location.lon-.5), mapLatitude-.5, Math.min(180,location.lon+.5), mapLatitude+.5] as [number,number,number,number];
+    }
     const active = squares?.[record] ?? [];
     if (active.length) {
       const extent = active.reduce((box, cell) => ({
@@ -150,8 +170,9 @@ export function FireCalendar({ index }: { index: DataIndex }) {
       }), { west: Infinity, east: -Infinity, south: Infinity, north: -Infinity });
       return [extent.west - 0.125, extent.south - 0.125, extent.east + 0.125, extent.north + 0.125] as [number, number, number, number];
     }
+    if (region) return regionBounds(region);
     return rows ? (studyArea ? allCellBounds(rows) : viewBounds(rows)) : null;
-  }, [region, rows, studyArea, squares, record]);
+  }, [region, rows, studyArea, squares, record, location, locationPeriod]);
   const outline = useMemo((): LonLat[] | null => {
     if (!region) return null;
     if (region.kind === "polygon") return region.ring;
@@ -177,6 +198,144 @@ export function FireCalendar({ index }: { index: DataIndex }) {
         <span className="dataset-badge"><span className="status-dot" /> Historical observations</span>
       </div>
 
+      <div id="spatial-view" className={workspace.workspace}>
+        <div className={workspace.header}>
+          <div><p className="eyebrow">FIRECHRONOS / SPATIAL EXPLORER</p><h2>Europe, in focus.</h2><p>Discover when and where satellite hotspots were observed.</p></div>
+          <span className={workspace.live}><span /> NASA FIRMS archive</span>
+        </div>
+        <div className={workspace.body}>
+          <aside className={workspace.sidebar} aria-label="Explore map controls">
+            <p className={workspace.step}>01 / CHOOSE YOUR VIEW</p>
+            <LocationSearch onSelect={point => {
+              setLocation({...point, period: locationPeriod}); setSelectedCell(null); setDrawMode(null);
+              setRegion({kind:"box", south: Math.max(-90,point.lat-.5), north:Math.min(90,point.lat+.5), west:Math.max(-180,point.lon-.5), east:Math.min(180,point.lon+.5)});
+            }} />
+            {location && <div className={workspace.locationNote}><strong>{location.label}</strong><p>{location.lat.toFixed(4)}°, {location.lon.toFixed(4)}°</p><p>{sources.length === 0 ? "This location is outside the available fire archive. No fire assessment is available here." : "Showing the surrounding area. No dot means no retained detection in the selected period; it does not confirm there was no fire."}</p><button type="button" onClick={()=>{setLocation(null);setRegion(null);setStudyAreaId(DEFAULT_STUDY_AREA.id);}}>Back to Europe</button></div>}
+            <label className={workspace.areaLabel} htmlFor="map-area">Study area</label>
+            <select id="map-area" className={workspace.areaSelect} value={studyArea ? "europe" : countryId} onChange={event => {
+              setRegion(null); setDrawMode(null); setLocation(null);
+              if (event.target.value === "europe") setStudyAreaId(DEFAULT_STUDY_AREA.id);
+              else { setStudyAreaId(null); setCountryId(event.target.value); }
+            }}><option value="europe">All Europe · 16 countries</option>{index.countries.map(country=><option key={country.id} value={country.id}>{country.name}</option>)}</select>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h3 className="font-semibold">Where: {mapPeriod}</h3>
+          {mapView === "frequency" ? null : month ? (
+            <button type="button" onClick={() => setPicked(null)} className="text-sm text-accent underline">
+              Show all months again
+            </button>
+          ) : (
+            <p className="text-sm text-muted">Click a month in the calendar to see it on the map.</p>
+          )}
+        </div>
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div role="group" aria-labelledby="map-view-label" className="flex items-center gap-2">
+            <span id="map-view-label" className="text-sm font-medium">
+              Colour dots by
+            </span>
+            <div className="inline-flex rounded-md border border-line p-0.5">
+              {(
+                [
+                  ["amount", "Fire amount"],
+                  ["frequency", "Years with detections"],
+                ] as const
+              ).map(([id, text]) => (
+                <button
+                  key={id}
+                  type="button"
+                  aria-pressed={mapView === id}
+                  onClick={() => setMapView(id)}
+                  className={
+                    "rounded px-3 py-1 text-sm " +
+                    (mapView === id ? "bg-accent font-medium text-background" : "text-muted hover:text-foreground")
+                  }
+                >
+                  {text}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <p className="mt-2 text-sm text-muted">
+          {mapView === "frequency"
+            ? `${frequency ? describeFrequency(frequency, yearCount) : ""} Darkest: at least one detection in all ${yearCount} years. Palest: in a single year.`
+            : `Each dot represents the centre of a 0.25° grid cell, coloured by its filtered hotspot detections in the ${record} record.`}
+        </p>
+        {mapView === "frequency" && extentCaution(firstYear) && (
+          <p className="mt-1 text-xs text-accent">{extentCaution(firstYear)}</p>
+        )}
+        <details className={workspace.advanced}><summary>Draw a custom area</summary>
+          <RegionPanel
+            drawMode={drawMode}
+            onDrawMode={chooseDrawMode}
+            hasRegion={region !== null}
+            onRegion={setRegion}
+            onClear={() => {
+              setRegion(null);
+              setDrawMode(null);
+            }}
+          />
+        </details>
+        <div className="map-period-controls mt-4" aria-label="Map period filters">
+          <div><label htmlFor="map-year">Year</label><select id="map-year" value={month?.year ?? (firstYear === lastYear ? firstYear : firstYear === index.firstYear && lastYear === index.lastYear ? "all" : "range")} onChange={event => {
+            const value = event.target.value;
+            setPicked(null); setMapView("amount");
+            if (value === "all") { setFirstYear(index.firstYear); setLastYear(index.lastYear); }
+            else { setFirstYear(Number(value)); setLastYear(Number(value)); }
+          }}><option value="all">All archive years</option>{firstYear !== lastYear && (firstYear !== index.firstYear || lastYear !== index.lastYear) && <option value="range" disabled>{firstYear}–{lastYear}</option>}{years.map(year => <option key={year} value={year}>{year}</option>)}</select></div>
+          <div><label htmlFor="map-month">Month</label><select id="map-month" value={month?.month ?? "all"} onChange={event => {
+            setMapView("amount");
+            if (event.target.value === "all") setPicked(null);
+            else setPicked({year: month?.year ?? lastYear, month: Number(event.target.value)});
+          }}><option value="all">All months</option>{Array.from({length:12},(_,i)=><option key={i+1} value={i+1}>{monthName(i+1)}</option>)}</select></div>
+          <p aria-live="polite">{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`} · {squares?.[record].length.toLocaleString() ?? "…"} cells with detections{rows && squares?.[record].length === 0 ? " · No retained detections in this selection." : ""}</p>
+        </div>
+            <p className={workspace.note}>Hotspots are satellite detections. Repeated observations can belong to the same fire.</p>
+          </aside>
+          <div className={workspace.mapColumn}>
+            <div className={workspace.mapHeading}><span>{areaName}</span><span>{month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</span></div>
+        <div className={workspace.mapFrame}>
+          <FireMap
+            animateEntry
+            onCellSelect={(lat, lon) => setSelectedCell({lat, lon})}
+            squares={(mapView === "frequency" ? frequency : squares?.[record]) ?? []}
+            max={mapView === "frequency" ? yearCount : squareMax}
+            scale={mapView === "frequency" ? "linear" : "sqrt"}
+            bounds={bounds}
+            label={`Map of fire detections in ${areaName}, ${mapPeriod}`}
+            outline={outline}
+            drawMode={drawMode}
+            onDrawn={(ring) => {
+              setRegion({ kind: "polygon", ring });
+              setDrawMode(null);
+            }}
+            weatherPick={weather.picking}
+            onWeatherPick={(lat, lon) => {
+              weather.setPoint({ lat, lon });
+              weather.setPicking(false);
+            }}
+            weatherMarker={location ? {lat: location.lat, lon: location.lon, towards: null, label: location.label} : weather.marker}
+          />
+            {selectedCell && cellInfo && <section className={`${workspace.cellInfo} ${workspace.cellDialog}`} role="dialog" aria-modal="false" aria-labelledby="cell-dialog-title" onKeyDown={event => { if (event.key === "Escape") setSelectedCell(null); }}>
+                <div className={workspace.cellTitle}><h3 id="cell-dialog-title">Selected hotspot grid cell</h3><button type="button" autoFocus onClick={() => setSelectedCell(null)} aria-label="Close grid cell information">×</button></div>
+                <p>{selectedCell.lat.toFixed(3)}° latitude · {selectedCell.lon.toFixed(3)}° longitude · {month ? `${monthName(month.month)} ${month.year}` : `${firstYear}–${lastYear}`}</p>
+                <dl className={workspace.cellMetrics}>
+                  <div><dt>{record === "corrected" ? "Corrected" : "Raw"} detections</dt><dd>{cellInfo.count.toLocaleString(undefined,{maximumFractionDigits:1})}{cellInfo.estimated ? " (estimated)" : ""}</dd></div>
+                  <div><dt>NASA hotspot type</dt><dd>0 · Presumed vegetation fire</dd></div>
+                  <div><dt>Observed MODIS</dt><dd>{cellInfo.modis.toLocaleString()} detections</dd></div>
+                  <div><dt>Observed VIIRS S-NPP</dt><dd>{(month?.year ?? lastYear) < VIIRS_FIRST_YEAR ? "Not available before 2012" : `${cellInfo.viirs.toLocaleString()} detections`}</dd></div>
+                  <div><dt>Summed pixel FRP · {record}</dt><dd>{cellInfo.frp.toLocaleString(undefined,{maximumFractionDigits:1})} MW</dd></div>
+                  <div><dt>Day / night</dt><dd>Not retained in monthly archive</dd></div>
+                </dl>
+                <div className={workspace.causeNote}><h4>Why did this happen?</h4><p>The cause is unknown from these satellite records. NASA classifies this hotspot as a presumed vegetation fire. That classification does not tell us whether lightning, an accidental ignition, deliberate burning, or another cause started it. Confirming a cause requires local incident reports or other evidence.</p><p>Wind can influence the movement of an existing fire, and dry conditions can help vegetation burn. Weather context alone cannot confirm the cause of this detection.</p></div>
+                <p>0.25° grid cell. Repeated detections are retained. FRP sums are experimental and do not measure total fire energy. Sensor counts are separate observations for the selected period.</p>
+            </section>}
+        </div>
+            <p className={workspace.cellHint}>Click a fire dot to inspect its grid-cell details. Dots show aggregated grid centres, not exact fire locations.</p>
+            <div className={workspace.legend}><span className="heat-ramp" /><span>Fewer detections</span><span>More detections</span><span className={workspace.resolution}>0.25° spatial grid</span></div>
+          </div>
+        </div>
+        <WeatherPanel weather={weather} month={month} onPickingChange={choosePicking} />
+      </div>
       <div className="europe-scope mt-5">
         <span className="europe-scope-mark" aria-hidden="true">EU</span>
         <div><p className="eyebrow">EUROPE ARCHIVE</p><p className="mt-1 text-sm text-muted">NASA FIRMS observations across 16 European countries · {index.firstYear}–{index.lastYear}</p></div>
@@ -285,7 +444,7 @@ export function FireCalendar({ index }: { index: DataIndex }) {
         )}
       </p>
       <p className="mt-1 max-w-3xl text-sm text-muted" aria-live="polite">
-        {EXPLAIN[record]} Darker squares had more hotspot detections.
+        {EXPLAIN[record]} Darker dots represent more hotspot detections.
       </p>
       <HowCalculatedPanel
         countRatio={harmonizationReport.regional_ratio_all_cells}
@@ -343,89 +502,6 @@ export function FireCalendar({ index }: { index: DataIndex }) {
         </div>
       )}
 
-      <div id="spatial-view" className="spatial-card mt-8 scroll-mt-6">
-        <div className="section-heading mb-5"><div><p className="eyebrow">03 / PUT IT ON THE MAP</p><h2>A closer look at your region</h2></div><span className="source-chip source-chip-muted">0.25° grid</span></div>
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h3 className="font-semibold">Where: {mapPeriod}</h3>
-          {mapView === "frequency" ? null : month ? (
-            <button type="button" onClick={() => setPicked(null)} className="text-sm text-accent underline">
-              Show all months again
-            </button>
-          ) : (
-            <p className="text-sm text-muted">Click a month in the calendar to see it on the map.</p>
-          )}
-        </div>
-        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2">
-          <div role="group" aria-labelledby="map-view-label" className="flex items-center gap-2">
-            <span id="map-view-label" className="text-sm font-medium">
-              Colour squares by
-            </span>
-            <div className="inline-flex rounded-md border border-line p-0.5">
-              {(
-                [
-                  ["amount", "Fire amount"],
-                  ["frequency", "Years with detections"],
-                ] as const
-              ).map(([id, text]) => (
-                <button
-                  key={id}
-                  type="button"
-                  aria-pressed={mapView === id}
-                  onClick={() => setMapView(id)}
-                  className={
-                    "rounded px-3 py-1 text-sm " +
-                    (mapView === id ? "bg-accent font-medium text-background" : "text-muted hover:text-foreground")
-                  }
-                >
-                  {text}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <p className="mt-2 text-sm text-muted">
-          {mapView === "frequency"
-            ? `${frequency ? describeFrequency(frequency, yearCount) : ""} Darkest: at least one detection in all ${yearCount} years. Palest: in a single year.`
-            : `Each square is about 25 km wide and coloured by its filtered hotspot detections in the ${record} record.`}
-        </p>
-        {mapView === "frequency" && extentCaution(firstYear) && (
-          <p className="mt-1 text-xs text-accent">{extentCaution(firstYear)}</p>
-        )}
-        <div className="mt-3">
-          <RegionPanel
-            drawMode={drawMode}
-            onDrawMode={chooseDrawMode}
-            hasRegion={region !== null}
-            onRegion={setRegion}
-            onClear={() => {
-              setRegion(null);
-              setDrawMode(null);
-            }}
-          />
-        </div>
-        <div className="mt-3">
-          <FireMap
-            squares={(mapView === "frequency" ? frequency : squares?.[record]) ?? []}
-            max={mapView === "frequency" ? yearCount : squareMax}
-            scale={mapView === "frequency" ? "linear" : "sqrt"}
-            bounds={bounds}
-            label={`Map of fire detections in ${areaName}, ${mapPeriod}`}
-            outline={outline}
-            drawMode={drawMode}
-            onDrawn={(ring) => {
-              setRegion({ kind: "polygon", ring });
-              setDrawMode(null);
-            }}
-            weatherPick={weather.picking}
-            onWeatherPick={(lat, lon) => {
-              weather.setPoint({ lat, lon });
-              weather.setPicking(false);
-            }}
-            weatherMarker={weather.marker}
-          />
-        </div>
-        <WeatherPanel weather={weather} month={month} onPickingChange={choosePicking} />
-      </div>
       {rows && studyAreaIsAvailable(studyArea ?? STUDY_AREAS[0], index) && (
         <FireSciencePanel rows={rows} firstYear={firstYear} lastYear={lastYear} ratio={harmonizationReport.regional_ratio_all_cells} record={record} />
       )}

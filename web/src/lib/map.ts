@@ -124,6 +124,8 @@ export function allCellBounds(rows: readonly CellRow[]): Bounds | null {
 }
 
 export interface SquareProperties {
+  lat: number;
+  lon: number;
   value: number;
   /** 0 to 1, from value / max: square root by default, as in the calendar colours. */
   t: number;
@@ -155,7 +157,7 @@ export function squaresGeoJSON(
     const [w, e, south, n] = [lon - HALF_CELL, lon + HALF_CELL, lat - HALF_CELL, lat + HALF_CELL];
     return {
       type: "Feature",
-      properties: { value: s.value, t: max > 0 ? colourPosition(Math.min(s.value, max) / max, scale) : 0 },
+      properties: { lat: s.lat, lon: s.lon, value: s.value, t: max > 0 ? colourPosition(Math.min(s.value, max) / max, scale) : 0 },
       geometry: {
         type: "Polygon",
         coordinates: [
