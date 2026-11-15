@@ -23,6 +23,8 @@ The committed archive contains **624 NASA FIRMS country/year CSV inputs** for **
 
 The monthly pipeline retains inferred hotspot `type = 0` (presumed vegetation fire), MODIS confidence ≥30, and VIIRS nominal/high confidence. It bins detection coordinates into 0.25° cells and counts retained detection records. It does not deduplicate repeated detections across satellite passes. FRP is summed per cell-month and sensor; this experimental sum is not burned area or cumulative energy. The harmonized grid omits daily timestamps and the day/night split; those attributes are shown only in the timestamped replay.
 
+Place names in the map's grid-cell dialog (the nearest town to a cell) come from [GeoNames](https://www.geonames.org/) cities15000, licensed CC BY 4.0, bundled as `web/public/data/places.json`. No web service is called. Rebuild it with `node web/scripts/build-places.mjs path/to/cities15000.txt`.
+
 ## Method
 
 For each calendar cell-month, the **raw timeline** uses MODIS through 2011 and VIIRS S-NPP from 2012 onward. In the 2012–2021 overlap, the shipped count scale is the Europe-wide pooled ratio:

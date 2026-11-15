@@ -99,11 +99,13 @@ export function FireMap({
   selectedObservationId = null,
   onObservationSelect,
   darkMode = false,
+  selectedCell = null,
   onCellSelect,
   animateEntry = false,
 }: {
   animateEntry?: boolean;
   darkMode?: boolean;
+  selectedCell?: {lat:number;lon:number} | null;
   onCellSelect?: (lat: number, lon: number) => void;
   squares: readonly SquareValue[];
   /** Value that gets the darkest colour. */
@@ -218,6 +220,8 @@ export function FireMap({
           });
           map.on("mouseenter", "squares", () => { if (map && !pickRef.current && !drawing.current) map.getCanvas().style.cursor = "pointer"; });
           map.on("mouseleave", "squares", () => { if (map) map.getCanvas().style.cursor = pickRef.current ? "crosshair" : ""; });
+          map.addSource("selected-cell", {type:"geojson",data:hotspotDots([],1)});
+          map.addLayer({id:"selected-cell",type:"circle",source:"selected-cell",paint:{"circle-radius":9,"circle-color":"rgba(0,0,0,0)","circle-stroke-color":"#b9f4ff","circle-stroke-width":2}});
           map.addSource("region", { type: "geojson", data: outlineGeoJSON(null) });
           map.addSource("observations", { type: "geojson", data: observationGeoJSON([], null) });
           map.addLayer({
@@ -307,6 +311,11 @@ export function FireMap({
     if (!ready) return;
     mapRef.current?.getSource<GeoJSONSource>("observations")?.setData(observationGeoJSON(observations, selectedObservationId));
   }, [ready, observations, selectedObservationId]);
+
+  useEffect(() => {
+    if (!ready) return;
+    mapRef.current?.getSource<GeoJSONSource>("selected-cell")?.setData(hotspotDots(selectedCell ? [{...selectedCell,value:1}] : [],1));
+  }, [ready, selectedCell]);
 
   // Show the chosen region's outline.
   useEffect(() => {
